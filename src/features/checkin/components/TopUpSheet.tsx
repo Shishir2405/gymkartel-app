@@ -47,6 +47,7 @@ export function TopUpSheet({
       ) : null}
       <View style={styles.action}>
         <Button
+          testID="top-up.confirm"
           label={
             failed
               ? `Try again · ${formatRupees(amountPaise)}`

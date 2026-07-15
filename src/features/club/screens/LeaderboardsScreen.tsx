@@ -80,7 +80,13 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
   const segments = (
     <View style={styles.segments}>
       {SCOPES.map((s) => (
-        <Chip key={s} label={s} selected={scope === s} onPress={() => setScope(s)} />
+        <Chip
+          key={s}
+          testID={`leaderboards.segment.${s}`}
+          label={s}
+          selected={scope === s}
+          onPress={() => setScope(s)}
+        />
       ))}
     </View>
   );
@@ -141,7 +147,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
 
           {/* Sticky viewer row */}
           {selfEntry ? (
-            <View style={styles.sticky}>
+            <View style={styles.sticky} testID="leaderboards.self">
               <RankRow entry={selfEntry} emphasized />
             </View>
           ) : null}

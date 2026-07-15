@@ -130,6 +130,7 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
           <View key={row.to}>
             {index > 0 ? <Divider /> : null}
             <PressableRow
+              testID={`club.nav.${row.to}`}
               onPress={() => navigation.navigate(row.to)}
               style={styles.navRow}
             >

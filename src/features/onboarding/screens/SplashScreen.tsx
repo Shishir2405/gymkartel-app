@@ -11,9 +11,14 @@ import type { AuthScreenProps } from "@/app/navigation/types";
 export function SplashScreen({ navigation }: AuthScreenProps<"Splash">) {
   return (
     <Screen
+      testID="splash"
       contentStyle={styles.content}
       footer={
-        <Button label="Enter the Club" onPress={() => navigation.navigate("PhoneOtp")} />
+        <Button
+          testID="splash.enter"
+          label="Enter the Club"
+          onPress={() => navigation.navigate("PhoneOtp")}
+        />
       }
     >
       <View style={styles.center}>

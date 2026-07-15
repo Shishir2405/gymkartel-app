@@ -22,9 +22,11 @@ import type { CoachCardFragment } from "@/graphql/generated/graphql";
 export function CoachCard({
   coach,
   onPress,
+  testID,
 }: {
   coach: CoachCardFragment;
   onPress: () => void;
+  testID?: string;
 }) {
   const isLegend = coach.badge === "LEGEND";
   const isElite = coach.badge === "ELITE";
@@ -32,7 +34,7 @@ export function CoachCard({
 
   return (
     <Card padded style={styles.card}>
-      <PressableRow onPress={onPress} style={styles.press}>
+      <PressableRow {...(testID ? { testID } : {})} onPress={onPress} style={styles.press}>
         <View style={styles.inner}>
           <Avatar name={coach.displayName} size={64} />
 

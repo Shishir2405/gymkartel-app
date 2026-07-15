@@ -1,0 +1,17 @@
+# Maestro workspace config for Gym Kartel e2e flows.
+# Docs: https://maestro.mobile.dev/
+#
+# These flows run against a REAL device/simulator + a running dev-client build
+# pointed at a STAGING API with seeded fixtures. They are NOT part of the unit
+# CI gate (jest). See ./README.md for prerequisites and how to run.
+#
+# Run all:      maestro test .maestro
+# Run one:      maestro test .maestro/checkin-offline.yaml
+#
+# Deterministic execution order (onboarding first — it can clear state).
+flows:
+  - onboarding.yaml
+  - buy-pass.yaml
+  - checkin-offline.yaml
+  - book-coach-chat-masking.yaml
+  - streak-rankup.yaml

@@ -76,8 +76,10 @@ export function CityZoneScreen({ navigation }: AuthScreenProps<"CityZone">) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Screen
+        testID="city-zone"
         footer={
           <Button
+            testID="city-zone.enter"
             label={done ? "You are in" : "Enter the Club"}
             onPress={onConfirm}
             disabled={zone === null || done}
@@ -92,6 +94,7 @@ export function CityZoneScreen({ navigation }: AuthScreenProps<"CityZone">) {
         </View>
 
         <Field
+          testID="city-zone.search"
           label="Search"
           value={query}
           onChangeText={setQuery}
@@ -112,7 +115,11 @@ export function CityZoneScreen({ navigation }: AuthScreenProps<"CityZone">) {
               return (
                 <View key={`${option.city}-${option.zone}`}>
                   {i > 0 ? <Divider /> : null}
-                  <PressableRow onPress={() => onSelect(option)} style={styles.row}>
+                  <PressableRow
+                    testID={`city-zone.zone.${option.zone}`}
+                    onPress={() => onSelect(option)}
+                    style={styles.row}
+                  >
                     <MapPin
                       size={20}
                       weight={isSelected ? "fill" : "regular"}

@@ -11,7 +11,9 @@
     "codegen": "graphql-codegen --config codegen.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "jest"
+    "test": "jest",
+    "e2e": "maestro test .maestro",
+    "e2e:flow": "maestro test"
   },
   "dependencies": {
     "@expo-google-fonts/barlow-condensed": "^0.2.3",

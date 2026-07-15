@@ -88,8 +88,10 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Screen
+        testID="phone-otp"
         footer={
           <Button
+            testID="phone-otp.submit"
             label={isPhone ? "Send code" : "Verify"}
             onPress={isPhone ? onSend : onVerify}
             disabled={!canSubmit}
@@ -108,6 +110,7 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
 
         {isPhone ? (
           <Field
+            testID="phone-otp.phone-input"
             label="Mobile number"
             value={local}
             onChangeText={(next) => {
@@ -133,6 +136,7 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
         ) : (
           <>
             <Field
+              testID="phone-otp.otp-input"
               label="Verification code"
               value={code}
               onChangeText={(next) => {

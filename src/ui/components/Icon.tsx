@@ -36,6 +36,8 @@ export interface IconButtonProps {
   weight?: PhosphorIconProps["weight"];
   accessibilityLabel: string;
   style?: ViewStyle;
+  /** Stable e2e selector (Maestro/Detox). See .maestro/README.md. */
+  testID?: string;
 }
 
 /** Tappable icon with a generous hit target. */
@@ -47,9 +49,11 @@ export function IconButton({
   weight = "regular",
   accessibilityLabel,
   style,
+  testID,
 }: IconButtonProps) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       hitSlop={spacing.md}
       accessibilityRole="button"

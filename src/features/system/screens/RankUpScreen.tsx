@@ -11,7 +11,7 @@ import type { MemberScreenProps } from "@/app/navigation/types";
 export function RankUpScreen({ route, navigation }: MemberScreenProps<"RankUp">) {
   const { fromRank, toRank, isTopRank } = route.params;
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrap} testID="rank-up">
       <RankUpTakeover
         fromRank={fromRank}
         toRank={toRank}

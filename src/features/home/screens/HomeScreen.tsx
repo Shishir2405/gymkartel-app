@@ -32,7 +32,7 @@ export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
   const hasPass = viewer?.activePass?.status === "ACTIVE";
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]} testID="home">
       <View style={styles.header}>
         <PressableRow onPress={() => navigation.navigate("Profile")}>
           <Avatar uri={viewer?.avatarUrl} name={viewer?.name} size={40} />

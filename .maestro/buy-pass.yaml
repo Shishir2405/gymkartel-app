@@ -1,0 +1,67 @@
+# FLOW 2 — Buy a pass
+# Brief scenario: Home "Get your Pass" -> pass ladder (15-day MOST CHOSEN
+#   pre-selected) -> payment -> success "Enter the Club".
+#
+# Seeded staging requirement: a signed-in member WITHOUT an active pass, so Home
+# renders the NoPass hero carrying the single orange "Get your Pass" button.
+#
+# PAYMENT NOTE (see README "Razorpay / payments"): the app opens the native
+# Razorpay UPI sheet, which Maestro cannot drive. On a build where the native
+# module is absent OR configured for the "unavailable" test path, openCheckout
+# resolves without native UI and the flow proceeds to PurchaseSuccess. On a real
+# dev-client build with a Razorpay TEST key, complete the sandbox UPI payment
+# manually at the [MANUAL-PAYMENT] step, then Maestro resumes.
+appId: com.gymkartel.app
+---
+- launchApp:
+    clearState: false     # reuse the seeded signed-in (no-pass) session
+
+# --- Home: no-pass hero --------------------------------------------------
+- tapOn:
+    id: "tab.Home"
+- assertVisible:
+    id: "home"
+- assertVisible:
+    id: "home.get-pass"             # "Get your Pass · from ₹…"
+- tapOn:
+    id: "home.get-pass"
+
+# --- Pass ladder: 15-day MOST CHOSEN pre-selected ------------------------
+- assertVisible:
+    id: "pass-ladder"
+- assertVisible: "MOST CHOSEN"      # sits on the emphasized 15-day row
+- assertVisible:
+    id: "pass-ladder.pack.FIFTEEN_DAY"
+# The 15-day row is emphasized/pre-selected; select it explicitly for safety.
+- tapOn:
+    id: "pass-ladder.pack.FIFTEEN_DAY"
+- tapOn:
+    id: "pass-ladder.get-pass"      # "Get your Pass · ₹…"
+
+# --- Payment (UPI) -------------------------------------------------------
+- assertVisible:
+    id: "payment"
+- assertVisible: "Pay for your Pass"
+- tapOn:
+    id: "payment.method.gpay"
+- tapOn:
+    id: "payment.pay"               # [MANUAL-PAYMENT] native sheet if key present
+# If a payment-failed state appears on a real decline, retry once:
+- runFlow:
+    when:
+      visible:
+        id: "payment.retry"
+    commands:
+      - tapOn:
+          id: "payment.retry"
+      - tapOn:
+          id: "payment.pay"
+
+# --- Success -------------------------------------------------------------
+- assertVisible:
+    id: "purchase-success"
+- assertVisible: "Pass active"
+- tapOn:
+    id: "purchase-success.enter"    # "Enter the Club" -> Tabs
+- assertVisible:
+    id: "home"

@@ -45,8 +45,10 @@ export function BookingConfirmedScreen({ navigation, route }: MemberScreenProps<
   return (
     <Screen
       scroll
+      testID="booking-confirmed"
       footer={
         <Button
+          testID="booking-confirmed.message"
           label="Message coach"
           onPress={() => navigation.navigate("ChatThread", { bookingId, peerName })}
         />

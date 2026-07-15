@@ -1,0 +1,106 @@
+# FLOW 1 — First-run onboarding
+# Brief scenario: splash -> phone+OTP -> name/photo -> health quiz ->
+#   pick tier (STANDARD pre-highlighted) -> city/zone -> Home.
+#
+# Selector convention: testID = "<screen>.<element>" (kebab-case). Screen-level
+# container ids are the bare "<screen>" (e.g. "splash", "phone-otp"). See README.
+#
+# Seeded staging requirement: a test phone number whose OTP is fixed/known.
+# Override via: maestro test -e PHONE=98XXXXXXXX -e OTP=000000 .maestro/onboarding.yaml
+#
+# KNOWN GATE BEHAVIOUR (see README "Onboarding deviation"): the auth gate flips
+# to the member app the instant the OTP is verified (signIn -> status=signedIn).
+# So on the CURRENT build the screens after OTP (name/photo -> city/zone) are
+# only reachable if staging withholds `signedIn` until the profile is completed,
+# OR the RootNavigator is given a "needsOnboarding" hold. The steps below are
+# authored to the brief's intended sequence and the real testIDs; if your build
+# jumps straight to Home after OTP, the run stops cleanly at the Home assertion
+# tagged [POST-OTP-GATE].
+appId: com.gymkartel.app
+env:
+  PHONE: "9800000001"     # seeded staging test number (10 digits, no +91)
+  OTP: "000000"           # seeded fixed OTP for the test number
+  NAME: "Test Member"
+---
+- launchApp:
+    clearState: true      # first run — no session, lands on Splash
+    permissions:
+      camera: allow
+      location: allow
+
+# --- Splash --------------------------------------------------------------
+- assertVisible:
+    id: "splash"
+- assertVisible: "GYM KARTEL"
+- tapOn:
+    id: "splash.enter"
+
+# --- Phone + OTP ---------------------------------------------------------
+- assertVisible:
+    id: "phone-otp"
+- assertVisible: "Your number"
+- tapOn:
+    id: "phone-otp.phone-input"
+- inputText: "${PHONE}"
+- tapOn:
+    id: "phone-otp.submit"          # "Send code"
+- assertVisible: "Enter the code"
+- tapOn:
+    id: "phone-otp.otp-input"
+- inputText: "${OTP}"
+- tapOn:
+    id: "phone-otp.submit"          # "Verify"
+
+# --- Name + photo --------------------------------------------------------
+# (Reachable only if staging keeps the session in onboarding — see header note.)
+- assertVisible:
+    id: "name-photo"
+- tapOn:
+    id: "name-photo.name-input"
+- inputText: "${NAME}"
+# Photo is optional and opens the OS gallery (not scriptable) — we skip it.
+- tapOn:
+    id: "name-photo.continue"
+
+# --- Health quiz (4 steps) ----------------------------------------------
+- assertVisible:
+    id: "health-quiz"
+- tapOn:
+    id: "health-quiz.goal.STRENGTH"
+- tapOn:
+    id: "health-quiz.primary"       # Next
+- tapOn:
+    id: "health-quiz.experience.REGULAR"
+- tapOn:
+    id: "health-quiz.primary"       # Next
+- tapOn:
+    id: "health-quiz.days.4"
+- tapOn:
+    id: "health-quiz.primary"       # Next -> injuries (optional)
+- tapOn:
+    id: "health-quiz.primary"       # Continue -> Pick tier
+
+# --- Pick tier (STANDARD pre-highlighted from store default) -------------
+- assertVisible:
+    id: "pick-tier"
+- assertVisible:
+    id: "pick-tier.tier.STANDARD"   # pre-selected; tapping is idempotent
+- tapOn:
+    id: "pick-tier.tier.STANDARD"
+- tapOn:
+    id: "pick-tier.continue"
+
+# --- City / zone ---------------------------------------------------------
+- assertVisible:
+    id: "city-zone"
+- tapOn:
+    id: "city-zone.search"
+- inputText: "Indiranagar"
+- tapOn:
+    id: "city-zone.zone.Indiranagar"
+- tapOn:
+    id: "city-zone.enter"           # "Enter the Club"
+
+# --- Home (member app) ---------------------------------------------------
+- assertVisible:
+    id: "home"                      # [POST-OTP-GATE] lands here

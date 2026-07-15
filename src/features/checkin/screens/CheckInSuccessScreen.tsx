@@ -40,11 +40,13 @@ export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"C
 
   return (
     <Screen
+      testID="check-in-success"
       footer={
         <View>
-          <Button label="Share" onPress={onShare} />
+          <Button testID="check-in-success.share" label="Share" onPress={onShare} />
           <View style={styles.ghostRow}>
             <Button
+              testID="check-in-success.customise"
               label="Customise"
               variant="ghost"
               fullWidth={false}
@@ -53,6 +55,7 @@ export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"C
               }
             />
             <Button
+              testID="check-in-success.done"
               label="Done"
               variant="ghost"
               fullWidth={false}
@@ -66,7 +69,10 @@ export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"C
         <SealStamp label={gymName} onStamped={() => setRevealed(true)} />
       </View>
 
-      <View style={[styles.record, revealed ? styles.recordVisible : styles.recordHidden]}>
+      <View
+        testID="check-in-success.record"
+        style={[styles.record, revealed ? styles.recordVisible : styles.recordHidden]}
+      >
         <Text preset="displayLarge" align="center">
           DAY {dayNumber}
         </Text>

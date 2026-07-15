@@ -1,0 +1,50 @@
+# FLOW 5 — Streak / rank-up
+# Brief scenario: navigate Club -> leaderboards (assert sticky self row) and the
+#   rank-up takeover if reachable via a seeded state.
+#
+# Seeded staging requirement: a signed-in member who appears on the leaderboard,
+# so the server returns a sticky `self` row (or an `isSelf` page row).
+#
+# RANK-UP NOTE: the app has no in-session navigation path to the rank-up takeover
+# (it is pushed by a seeded rank-up event / server signal). The block at the end
+# asserts + dismisses it ONLY IF it is present, so the flow passes whether or not
+# staging seeds a rank-up. To force it, seed a check-in that crosses a rank
+# threshold. See README "Rank-up takeover".
+appId: com.gymkartel.app
+---
+- launchApp:
+    clearState: false
+
+# --- Club home -----------------------------------------------------------
+- tapOn:
+    id: "tab.Club"
+- assertVisible:
+    id: "club-home"
+- assertVisible: "YOUR RANK"
+
+# --- Leaderboards: sticky self row ---------------------------------------
+- tapOn:
+    id: "club.nav.Leaderboards"
+- assertVisible:
+    id: "leaderboards"
+- assertVisible: "Leaderboards"
+# The viewer's own row is pinned to the bottom (orange hairline) — always visible.
+- assertVisible:
+    id: "leaderboards.self"
+- assertVisible: "You"
+# Sticky proof: scroll the ranked list; the self row stays pinned.
+- scroll
+- assertVisible:
+    id: "leaderboards.self"
+
+# --- Rank-up takeover (only if seeded/reachable) -------------------------
+- runFlow:
+    when:
+      visible:
+        id: "rank-up"
+    commands:
+      - assertVisible:
+          id: "rank-up"
+      - assertVisible: "RANK UP"
+      - tapOn:
+          id: "rank-up.continue"    # dismiss the cinematic

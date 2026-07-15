@@ -116,11 +116,11 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
   }
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID="chat-thread">
       {header}
 
       {/* Safety strip */}
-      <View style={styles.strip}>
+      <View style={styles.strip} testID="chat.safety-strip">
         <EyeSlash size={14} color={colors.text.secondary} />
         <Text preset="body" color="secondary" style={styles.stripText}>
           Numbers and links are hidden for your safety.
@@ -153,6 +153,7 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
               color={colors.text.secondary}
             />
             <TextInput
+              testID="chat.input"
               style={styles.input}
               value={draft}
               onChangeText={setDraft}
@@ -163,6 +164,7 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
             />
             <IconButton
               icon={PaperPlaneRight}
+              testID="chat.send"
               accessibilityLabel="Send"
               onPress={() => void onSend()}
               color={draft.trim() ? colors.accent.primary : colors.text.disabled}
@@ -178,9 +180,9 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
 function Bubble({ message, fromMe }: { message: ChatMessageRowFragment; fromMe: boolean }) {
   const masked = maskPii(message.text);
   return (
-    <View style={[styles.bubbleRow, fromMe ? styles.rowMe : styles.rowPeer]}>
+    <View style={[styles.bubbleRow, fromMe ? styles.rowMe : styles.rowPeer]} testID="chat.message">
       <View style={[styles.bubble, fromMe ? styles.bubbleMe : styles.bubblePeer]}>
-        <Text preset="body">{masked}</Text>
+        <Text testID="chat.message-text" preset="body">{masked}</Text>
         <Text preset="label" color="secondary" style={styles.time}>
           {formatTime(message.sentAt)}
         </Text>

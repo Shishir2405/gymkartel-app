@@ -99,8 +99,10 @@ export function PassLadderScreen({ navigation }: MemberScreenProps<"PassLadder">
   return (
     <Screen
       scroll
+      testID="pass-ladder"
       footer={
         <Button
+          testID="pass-ladder.get-pass"
           label={`Get your Pass · ${selectedRow ? formatRupees(selectedRow.pricePaise) : ""}`}
           onPress={() =>
             navigation.navigate("Payment", { pack: selected })
@@ -160,7 +162,7 @@ function PackRow({
       elevation={selected ? "pressed" : "raised"}
       style={[styles.rowCard, selected && styles.rowSelected]}
     >
-      <PressableRow onPress={onPress} style={styles.rowInner}>
+      <PressableRow testID={`pass-ladder.pack.${row.pack}`} onPress={onPress} style={styles.rowInner}>
         <View style={styles.rowMain}>
           <View style={styles.rowTop}>
             <Text preset="bodyMedium">

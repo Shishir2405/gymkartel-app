@@ -68,7 +68,7 @@ export function RankUpTakeover({ fromRank, toRank, onDone, isTopRank = false }: 
         </Text>
       </View>
       <View style={styles.footer}>
-        <Button label="Continue" onPress={onDone} />
+        <Button testID="rank-up.continue" label="Continue" onPress={onDone} />
       </View>
     </Animated.View>
   );

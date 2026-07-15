@@ -60,8 +60,14 @@ export function NamePhotoScreen({ navigation }: AuthScreenProps<"NamePhoto">) {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Screen
+        testID="name-photo"
         footer={
-          <Button label="Continue" onPress={onContinue} disabled={name.trim().length === 0} />
+          <Button
+            testID="name-photo.continue"
+            label="Continue"
+            onPress={onContinue}
+            disabled={name.trim().length === 0}
+          />
         }
       >
         <View style={styles.header}>
@@ -73,6 +79,7 @@ export function NamePhotoScreen({ navigation }: AuthScreenProps<"NamePhoto">) {
 
         <View style={styles.avatarWrap}>
           <Pressable
+            testID="name-photo.photo"
             onPress={pickPhoto}
             accessibilityRole="button"
             accessibilityLabel="Add a photo"
@@ -89,6 +96,7 @@ export function NamePhotoScreen({ navigation }: AuthScreenProps<"NamePhoto">) {
         </View>
 
         <Field
+          testID="name-photo.name-input"
           label="Full name"
           value={name}
           onChangeText={setName}

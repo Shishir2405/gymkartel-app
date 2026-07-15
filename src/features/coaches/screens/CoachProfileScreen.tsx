@@ -73,7 +73,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
   const isLegend = coach.badge === "LEGEND";
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID="coach-profile">
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Cover */}
         <View style={styles.cover}>
@@ -193,12 +193,14 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
         <View style={styles.sticky}>
           <View style={{ flex: 1 }}>
             <Button
+              testID="coach-profile.book"
               label={`Book · ${formatRupees(coach.pricePerSessionPaise)}`}
               onPress={() => navigation.navigate("PickSlot", { coachId })}
             />
           </View>
           <IconButton
             icon={ChatCircle}
+            testID="coach-profile.chat"
             accessibilityLabel="Message coach"
             style={styles.chatBtn}
             onPress={() =>

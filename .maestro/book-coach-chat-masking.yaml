@@ -1,0 +1,81 @@
+# FLOW 4 — Book a coach + chat PII masking
+# Brief scenario: browse coaches -> profile -> book -> pick slot -> review & pay
+#   -> confirmed; open chat and assert a typed phone / UPI handle / link renders
+#   MASKED, and the "Numbers and links are hidden for your safety" strip shows.
+#
+# Seeded staging requirement: a signed-in member and at least one bookable coach
+# with availability at a seeded gym.
+#
+# PAYMENT NOTE: same as buy-pass — the native Razorpay sheet is not scriptable.
+# Complete the sandbox UPI payment manually at [MANUAL-PAYMENT] if a real key is
+# wired; otherwise the unavailable test path proceeds to BookingConfirmed.
+appId: com.gymkartel.app
+---
+- launchApp:
+    clearState: false
+
+# --- Browse coaches (from Home) ------------------------------------------
+- tapOn:
+    id: "tab.Home"
+- tapOn: "Book a Coach"             # Home twin action card -> CoachBrowse
+- assertVisible:
+    id: "coach-browse"
+- tapOn:
+    id: "coach-card"                # id is a regex; first matching card
+    index: 0
+
+# --- Coach profile -> Book -----------------------------------------------
+- assertVisible:
+    id: "coach-profile"
+- assertVisible: "PER SESSION"      # price shown upfront
+- tapOn:
+    id: "coach-profile.book"
+
+# --- Pick a slot ---------------------------------------------------------
+- assertVisible:
+    id: "pick-slot"
+- tapOn:
+    id: "pick-slot.date.0"          # today
+- tapOn:
+    id: "pick-slot.time.6"          # 6:00 AM — a free (tappable) slot on day 0
+- tapOn:
+    id: "pick-slot.gym"             # first gym row (regex id)
+    index: 0
+- tapOn:
+    id: "pick-slot.continue"
+
+# --- Review & pay --------------------------------------------------------
+- assertVisible:
+    id: "review-pay"
+- assertVisible: "Review and pay"
+- tapOn:
+    id: "review-pay.method.gpay"
+- tapOn:
+    id: "review-pay.pay"            # [MANUAL-PAYMENT] native sheet if key present
+
+# --- Confirmed -----------------------------------------------------------
+- assertVisible:
+    id: "booking-confirmed"
+- assertVisible: "Session confirmed"
+- tapOn:
+    id: "booking-confirmed.message" # open chat with the coach
+
+# --- Chat: safety strip + PII masking ------------------------------------
+- assertVisible:
+    id: "chat-thread"
+- assertVisible:
+    id: "chat.safety-strip"
+- assertVisible: "Numbers and links are hidden for your safety."
+# Type a phone number, a UPI handle and a link, then send.
+- tapOn:
+    id: "chat.input"
+- inputText: "reach me 9876543210 or pay me@ybl see insta.com/coach"
+- tapOn:
+    id: "chat.send"
+# The rendered bubble must be MASKED (maskPii replaces PII with "•••").
+- assertVisible:
+    id: "chat.message-text"
+- assertVisible: "•••"
+- assertNotVisible: "9876543210"    # phone masked
+- assertNotVisible: "me@ybl"        # UPI handle masked
+- assertNotVisible: "insta.com/coach" # link masked

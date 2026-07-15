@@ -73,8 +73,9 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
   return (
     <Screen
       scroll
+      testID="pick-slot"
       footer={
-        <Button label="Continue" onPress={onContinue} disabled={!canContinue} />
+        <Button testID="pick-slot.continue" label="Continue" onPress={onContinue} disabled={!canContinue} />
       }
     >
       <Text preset="title" style={styles.title}>
@@ -95,6 +96,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
           return (
             <Pressable
               key={d.toISOString()}
+              testID={`pick-slot.date.${i}`}
               onPress={() => {
                 void haptics.light();
                 setDayIndex(i);
@@ -128,6 +130,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
           return (
             <Pressable
               key={h}
+              testID={`pick-slot.time.${h}`}
               disabled={taken}
               onPress={() => {
                 void haptics.light();
@@ -186,7 +189,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
             return (
               <View key={g.id}>
                 {i > 0 ? <Divider /> : null}
-                <PressableRow onPress={() => setGymId(g.id)} style={styles.gymRow}>
+                <PressableRow testID={`pick-slot.gym.${g.id}`} onPress={() => setGymId(g.id)} style={styles.gymRow}>
                   <MapPin
                     size={20}
                     color={selected ? colors.accent.primary : colors.text.secondary}

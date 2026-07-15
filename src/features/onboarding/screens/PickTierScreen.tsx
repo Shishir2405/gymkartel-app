@@ -32,8 +32,10 @@ export function PickTierScreen({ navigation }: AuthScreenProps<"PickTier">) {
   return (
     <Screen
       scroll
+      testID="pick-tier"
       footer={
         <Button
+          testID="pick-tier.continue"
           label="Continue"
           onPress={() => navigation.navigate("CityZone")}
           disabled={selected === null}
@@ -53,6 +55,7 @@ export function PickTierScreen({ navigation }: AuthScreenProps<"PickTier">) {
           return (
             <Pressable
               key={tier}
+              testID={`pick-tier.tier.${tier}`}
               onPress={() => onSelect(tier)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}

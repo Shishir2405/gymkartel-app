@@ -124,6 +124,7 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
         </View>
         <View style={styles.seriousFooter}>
           <Pressable
+            testID="payment.retry"
             accessibilityRole="button"
             onPress={() => setFailed(false)}
             style={({ pressed }) => [styles.seriousBtn, pressed && { opacity: 0.85 }]}
@@ -140,8 +141,10 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
   return (
     <Screen
       scroll
+      testID="payment"
       footer={
         <Button
+          testID="payment.pay"
           label={`Pay ${formatRupees(amountPaise)}`}
           loading={fetching || paying}
           onPress={() => void onPay()}
@@ -172,7 +175,11 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
         {UPI_METHODS.map((m, i) => (
           <View key={m.id}>
             {i > 0 ? <Divider style={{ marginVertical: spacing.sm }} /> : null}
-            <PressableRow onPress={() => setMethod(m.id)} style={styles.methodRow}>
+            <PressableRow
+              testID={`payment.method.${m.id}`}
+              onPress={() => setMethod(m.id)}
+              style={styles.methodRow}
+            >
               <Text preset="body" style={{ flex: 1 }}>
                 {m.label}
               </Text>

@@ -1,0 +1,77 @@
+# FLOW 3 — Offline check-in (PRIORITY)
+# Brief scenario: open scanner, go offline mid-flow, scan, assert the check-in
+#   is QUEUED and the success seal STILL shows (never blocked on network), then
+#   restore connectivity and assert sync.
+#
+# Seeded staging requirement: a signed-in member WITH an active pass whose tier
+# is >= the seeded gym's tier (so the scan enqueues immediately instead of
+# routing to the pass ladder or a top-up sheet).
+#
+# TWO capabilities are not fully scriptable — handled with documented manual
+# gates (per brief: "where a capability isn't scriptable, document the manual
+# step in a comment"):
+#
+#  [MANUAL-OFFLINE]  Airplane mode: `setAirplaneMode` is ANDROID-ONLY in Maestro.
+#                    On iOS, toggle airplane mode by hand at the marked steps
+#                    (Control Center) within the wait window.
+#  [MANUAL-SCAN]     The QR scan uses the live camera; Maestro cannot inject a
+#                    frame. Present the seeded gym door QR to the camera during
+#                    the extendedWaitUntil window below. The app decodes it
+#                    OFFLINE and pushes CheckInSuccess with no network round-trip.
+appId: com.gymkartel.app
+---
+- launchApp:
+    clearState: false
+    permissions:
+      camera: allow
+
+# --- Open the scanner ----------------------------------------------------
+- tapOn:
+    id: "tab.CheckIn"
+- assertVisible:
+    id: "scanner"
+- assertVisible:
+    id: "scanner.offline-hint"      # "Point at the code on the door. This works offline."
+
+# --- Go OFFLINE *before* the scan (mid-flow) -----------------------------
+# [MANUAL-OFFLINE] iOS: enable airplane mode now. Android: the next line does it.
+- setAirplaneMode: enabled          # Android only; no-op/err on iOS -> do it by hand
+
+# --- Scan while offline --------------------------------------------------
+# [MANUAL-SCAN] Present the seeded gym QR to the camera within 60s. The decode
+# enqueues the check-in locally (SQLite outbox) and navigates without waiting on
+# the network — proving check-in is never blocked on connectivity.
+- extendedWaitUntil:
+    visible:
+      id: "check-in-success"
+    timeout: 60000
+
+# --- Success seal STILL shows while offline ------------------------------
+- assertVisible:
+    id: "check-in-success"
+- assertVisible:
+    id: "check-in-success.record"   # DAY count + streak + rank settle under the seal
+- assertVisible: "DAY"
+- tapOn:
+    id: "check-in-success.done"     # back to Tabs
+
+# --- Assert the check-in is QUEUED (offline banner) ----------------------
+# The Gyms tab surfaces the quiet offline banner while the outbox holds the scan.
+- tapOn:
+    id: "tab.Gyms"
+- assertVisible:
+    id: "offline-banner"            # "Offline — your check-ins are saved"
+
+# --- Restore connectivity and assert SYNC --------------------------------
+# [MANUAL-OFFLINE] iOS: disable airplane mode now. Android: the next line does it.
+- setAirplaneMode: disabled         # Android only; on iOS toggle it off by hand
+# On reconnect, useOutboxSync flushes the queued scan (idempotent SyncCheckIn).
+# Observable proxy for "synced": the offline banner clears once online + drained.
+- extendedWaitUntil:
+    notVisible:
+      id: "offline-banner"
+    timeout: 30000
+- assertNotVisible:
+    id: "offline-banner"
+# Deeper server-side confirmation (streak/leaderboard increment) requires
+# staging fixtures; see README "Verifying sync server-side".

@@ -9,7 +9,7 @@ import { Text } from "./Text";
  */
 export function OfflineBanner({ pendingCount = 0 }: { pendingCount?: number }) {
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrap} testID="offline-banner">
       <View style={styles.dot} />
       <Text preset="label" color="secondary">
         {pendingCount > 0

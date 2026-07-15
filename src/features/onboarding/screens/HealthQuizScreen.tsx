@@ -75,8 +75,10 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <Screen
+        testID="health-quiz"
         footer={
           <Button
+            testID="health-quiz.primary"
             label={isLast ? "Continue" : "Next"}
             onPress={onPrimary}
             disabled={!canAdvance}
@@ -97,6 +99,7 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
               {GOALS.map((g) => (
                 <Chip
                   key={g.value}
+                  testID={`health-quiz.goal.${g.value}`}
                   label={g.label}
                   selected={goal === g.value}
                   onPress={() => set({ goal: g.value })}
@@ -115,6 +118,7 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
               {EXPERIENCE.map((e) => (
                 <Chip
                   key={e.value}
+                  testID={`health-quiz.experience.${e.value}`}
                   label={e.label}
                   selected={experience === e.value}
                   onPress={() => set({ experience: e.value })}
@@ -133,6 +137,7 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
               {DAYS.map((d) => (
                 <Chip
                   key={d}
+                  testID={`health-quiz.days.${d}`}
                   label={String(d)}
                   selected={trainingDaysTarget === d}
                   onPress={() => set({ trainingDaysTarget: d })}
@@ -148,6 +153,7 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
             body="Optional. It helps coaches keep sessions safe for you."
           >
             <Field
+              testID="health-quiz.injuries-input"
               label="Injuries or limits"
               value={injuriesNote}
               onChangeText={(next) => set({ injuriesNote: next.slice(0, 280) })}

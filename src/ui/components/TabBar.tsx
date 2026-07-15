@@ -56,6 +56,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             return (
               <Pressable
                 key={route.key}
+                testID={`tab.${route.name}`}
                 onPress={onPress}
                 style={styles.centerSlot}
                 accessibilityRole="button"
@@ -75,6 +76,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           return (
             <Pressable
               key={route.key}
+              testID={`tab.${route.name}`}
               onPress={onPress}
               style={styles.tab}
               accessibilityRole="button"

@@ -71,6 +71,7 @@ export function NoPassHeroCard({
       </Text>
       <View style={styles.noPassAction}>
         <Button
+          testID="home.get-pass"
           label={`Get your Pass · from ${formatRupees(fromPaise)}`}
           onPress={onGetPass}
         />

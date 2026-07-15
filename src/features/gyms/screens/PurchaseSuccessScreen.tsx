@@ -16,7 +16,14 @@ export function PurchaseSuccessScreen({ navigation, route }: MemberScreenProps<"
 
   return (
     <Screen
-      footer={<Button label="Enter the Club" onPress={() => navigation.navigate("Tabs")} />}
+      testID="purchase-success"
+      footer={
+        <Button
+          testID="purchase-success.enter"
+          label="Enter the Club"
+          onPress={() => navigation.navigate("Tabs")}
+        />
+      }
     >
       <View style={styles.body}>
         <CheckCircle size={56} weight="fill" color={colors.accent.primary} />

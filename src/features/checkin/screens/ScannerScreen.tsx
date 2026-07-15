@@ -172,7 +172,7 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   }, [pendingTopUp, checkIn, succeed]);
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID="scanner">
       {hasPermission && device ? (
         <Camera
           style={StyleSheet.absoluteFill}
@@ -190,7 +190,7 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
           </Text>
           {!hasPermission ? (
             <View style={styles.permBtn}>
-              <Button label="Allow camera" onPress={() => void requestPermission()} fullWidth={false} />
+              <Button testID="scanner.allow-camera" label="Allow camera" onPress={() => void requestPermission()} fullWidth={false} />
             </View>
           ) : null}
         </View>
@@ -200,6 +200,7 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
         <View style={styles.topRow}>
           <IconButton
             icon={X}
+            testID="scanner.close"
             accessibilityLabel="Close scanner"
             onPress={() => navigation.navigate("Home")}
           />
@@ -208,10 +209,10 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
 
         <View style={styles.frameWrap} pointerEvents="none">
           <View style={styles.frame} />
-          <Text preset="label" color="primary" style={styles.hint}>
+          <Text testID="scanner.hint" preset="label" color="primary" style={styles.hint}>
             CHECK IN HERE
           </Text>
-          <Text preset="body" color="secondary" align="center" style={styles.sub}>
+          <Text testID="scanner.offline-hint" preset="body" color="secondary" align="center" style={styles.sub}>
             Point at the code on the door. This works offline.
           </Text>
         </View>

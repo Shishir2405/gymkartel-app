@@ -97,13 +97,17 @@ export function PressableRow({
   children,
   onPress,
   style,
+  testID,
 }: {
   children: React.ReactNode;
   onPress?: () => void;
   style?: ViewStyle;
+  /** Stable e2e selector (Maestro/Detox). See .maestro/README.md. */
+  testID?: string;
 }) {
   return (
     <Pressable
+      testID={testID}
       onPress={onPress}
       style={({ pressed }) => [styles.row, style, pressed && { opacity: 0.7 }]}
     >

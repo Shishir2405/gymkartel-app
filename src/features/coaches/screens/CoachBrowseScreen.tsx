@@ -117,7 +117,7 @@ export function CoachBrowseScreen({ navigation }: MemberScreenProps<"CoachBrowse
   }
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} testID="coach-browse">
       <FlatList
         data={coaches}
         keyExtractor={(c) => c.id}
@@ -129,6 +129,7 @@ export function CoachBrowseScreen({ navigation }: MemberScreenProps<"CoachBrowse
         renderItem={({ item }) => (
           <View style={styles.gridItem}>
             <CoachCard
+              testID={`coach-card.${item.id}`}
               coach={item}
               onPress={() => navigation.navigate("CoachProfile", { coachId: item.id })}
             />

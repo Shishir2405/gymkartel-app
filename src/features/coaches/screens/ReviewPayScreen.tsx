@@ -113,7 +113,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
 
   if (failed) {
     return (
-      <Screen footer={<Button label={`Retry · ${formatRupees(coach.pricePerSessionPaise)}`} onPress={() => void onPay()} />}>
+      <Screen testID="review-pay" footer={<Button testID="review-pay.pay" label={`Retry · ${formatRupees(coach.pricePerSessionPaise)}`} onPress={() => void onPay()} />}>
         <StatePlaceholder
           variant="error"
           icon={<WarningCircle size={40} color={colors.text.secondary} />}
@@ -127,8 +127,10 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
   return (
     <Screen
       scroll
+      testID="review-pay"
       footer={
         <Button
+          testID="review-pay.pay"
           label={`Pay ${formatRupees(coach.pricePerSessionPaise)}`}
           onPress={() => void onPay()}
           loading={paying}
@@ -190,7 +192,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
           return (
             <View key={m.id}>
               {i > 0 ? <Divider style={styles.divider} /> : null}
-              <PressableRow onPress={() => setMethod(m.id)} style={styles.methodRow}>
+              <PressableRow testID={`review-pay.method.${m.id}`} onPress={() => setMethod(m.id)} style={styles.methodRow}>
                 <View style={styles.methodText}>
                   <Text preset="bodyMedium">{m.label}</Text>
                   <Text preset="body" color="secondary">
