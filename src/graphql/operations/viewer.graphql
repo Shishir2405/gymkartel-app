@@ -1,0 +1,33 @@
+query Viewer {
+  viewer {
+    id
+    name
+    avatarUrl
+    tier
+    zone
+    role
+    streak {
+      current
+      windowDaysLeft
+      bonusDaysEarned
+    }
+    activePass {
+      id
+      tier
+      pack
+      daysTotal
+      daysUsed
+      bonusDays
+      daysLeft
+      validUntil
+      status
+    }
+  }
+}
+
+query VersionGate {
+  versionGate {
+    latestVersion
+    minSupportedVersion
+  }
+}

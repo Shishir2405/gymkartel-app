@@ -1,0 +1,11 @@
+query PassLadder {
+  passLadder {
+    pack
+    days
+    pricePaise
+    perDayPaise
+    badge
+    rankMultiplier
+    emphasized
+  }
+}

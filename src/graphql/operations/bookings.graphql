@@ -1,0 +1,25 @@
+fragment BookingRow on Booking {
+  id
+  scheduledFor
+  pricePaise
+  status
+  insured
+  chatUnlocked
+  coach {
+    id
+    displayName
+    verified
+    badge
+  }
+  gym {
+    id
+    name
+    tier
+  }
+}
+
+query Bookings {
+  bookings {
+    ...BookingRow
+  }
+}

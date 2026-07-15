@@ -1,0 +1,28 @@
+fragment CoachCard on Coach {
+  id
+  displayName
+  verified
+  badge
+  specialties
+  pricePerSessionPaise
+  ratingAverage
+  sessionsCompleted
+}
+
+fragment CoachFull on Coach {
+  ...CoachCard
+  bio
+  transformationPhotoUrls
+}
+
+query Coaches($specialty: String, $femaleOnly: Boolean, $maxPricePaise: Int) {
+  coaches(specialty: $specialty, femaleOnly: $femaleOnly, maxPricePaise: $maxPricePaise) {
+    ...CoachCard
+  }
+}
+
+query Coach($id: ID!) {
+  coach(id: $id) {
+    ...CoachFull
+  }
+}

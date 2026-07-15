@@ -1,0 +1,19 @@
+fragment CheckInRow on CheckIn {
+  id
+  gymTier
+  passTier
+  scannedAt
+  dayNumber
+  topUpAmountPaise
+  gym {
+    id
+    name
+    tier
+  }
+}
+
+query CheckInHistory($limit: Int) {
+  checkInHistory(limit: $limit) {
+    ...CheckInRow
+  }
+}

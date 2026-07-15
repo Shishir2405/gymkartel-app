@@ -1,0 +1,24 @@
+fragment GymCard on Gym {
+  id
+  name
+  tier
+  zone
+  address
+  distanceMeters
+  amenities
+  photoUrls
+  rating
+  liveBusyFraction
+}
+
+query Gyms($zone: String, $peekOtherTiers: Boolean) {
+  gyms(zone: $zone, peekOtherTiers: $peekOtherTiers) {
+    ...GymCard
+  }
+}
+
+query Gym($id: ID!) {
+  gym(id: $id) {
+    ...GymCard
+  }
+}

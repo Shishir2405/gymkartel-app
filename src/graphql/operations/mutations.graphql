@@ -1,0 +1,38 @@
+mutation RequestOtp($input: RequestOtpInput!) {
+  requestOtp(input: $input)
+}
+
+mutation VerifyOtp($input: VerifyOtpInput!) {
+  verifyOtp(input: $input) {
+    accessToken
+    refreshToken
+  }
+}
+
+mutation RefreshSession($refreshToken: String!) {
+  refreshSession(refreshToken: $refreshToken) {
+    accessToken
+    refreshToken
+  }
+}
+
+mutation SyncCheckIn($input: SyncCheckInInput!) {
+  syncCheckIn(input: $input) {
+    checkIn {
+      ...CheckInRow
+    }
+    topUpRequired {
+      gymTier
+      amountPaise
+      razorpayOrderId
+    }
+  }
+}
+
+mutation CreatePassOrder($input: CreatePassOrderInput!) {
+  createPassOrder(input: $input) {
+    orderId
+    amountPaise
+    currency
+  }
+}
