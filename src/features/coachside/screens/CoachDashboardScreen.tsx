@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CalendarBlank, UsersThree, Wallet, Star, GearSix, CaretRight } from "phosphor-react-native";
@@ -10,6 +10,7 @@ import {
   Skeleton,
   Sheet,
   IconButton,
+  StatePlaceholder,
   PressableRow,
   useToast,
   colors,
@@ -17,37 +18,34 @@ import {
   radius,
 } from "@/ui";
 import type { CoachTabScreenProps } from "@/app/navigation/types";
-import { useViewerQuery } from "@/graphql/generated/graphql";
+import { useViewerQuery, useCoachDashboardQuery } from "@/graphql/generated/graphql";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { formatRupees, formatTime, greeting } from "@/lib/format";
-import { COACH_TAKE_RATE } from "@gymkartel/contracts";
-import { MOCK_SESSIONS, MOCK_COMPLETED, MOCK_REVIEWS, type CoachReview } from "@/features/coachside/lib/mock";
+import { toUiError } from "@/lib/errors";
+import { MOCK_REVIEWS, type CoachReview } from "@/features/coachside/lib/mock";
 
 /**
- * Coach home. The take-home number is the hero (Barlow), everything else is
- * quiet. Recent reviews are folded in with a public-reply affordance, and the
- * gear opens a small sheet carrying the role switch and sign-out.
+ * Coach home. The take-home number is the hero (Barlow), sourced from
+ * `coachDashboard.earningsPaise` (already net of the 20% platform fee).
+ * Everything else is quiet. Recent reviews are folded in with a public-reply
+ * affordance (reviews have no query yet — kept local). The gear opens a small
+ * sheet carrying the role switch and sign-out.
  */
 export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachDashboard">) {
-  const [{ data, fetching }] = useViewerQuery();
-  const viewer = data?.viewer;
+  const [{ data: viewerData }] = useViewerQuery();
+  const [{ data, fetching, error }, refetch] = useCoachDashboardQuery();
+  const viewer = viewerData?.viewer;
+  const dashboard = data?.coachDashboard ?? null;
   const { setRole, signOut } = useAuth();
   const { show } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const uiError = toUiError(error);
 
   const firstName = viewer?.name?.split(" ")[0] ?? "Coach";
+  const todaysSessions = dashboard?.todaysSessions ?? [];
+  const pending = dashboard?.pendingRequests ?? [];
 
-  const today = useMemo(() => {
-    const now = new Date();
-    return MOCK_SESSIONS.filter((s) => new Date(s.startIso).toDateString() === now.toDateString());
-  }, []);
-  const todayBooked = today.filter((s) => s.status === "BOOKED");
-  const upcoming = MOCK_SESSIONS.filter((s) => s.status === "BOOKED").length;
-  const weekGross = MOCK_COMPLETED.reduce((sum, s) => sum + s.grossPaise, 0);
-  const weekTakeHome = Math.round(weekGross * COACH_TAKE_RATE);
-  const rating = 4.8;
-
-  if (fetching && !viewer) {
+  if (fetching && !dashboard) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
         <View style={styles.content}>
@@ -56,6 +54,20 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           <Skeleton height={72} radius={radius.card} style={{ marginTop: spacing.md }} />
           <Skeleton height={72} radius={radius.card} style={{ marginTop: spacing.md }} />
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (uiError && !dashboard) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <StatePlaceholder
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+          title="We could not load your dashboard"
+          body={uiError.message}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
       </SafeAreaView>
     );
   }
@@ -81,10 +93,10 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
         {/* Earnings hero */}
         <Card padded style={styles.hero}>
           <Text preset="label" color="secondary">
-            THIS WEEK, YOUR TAKE-HOME
+            YOUR TAKE-HOME PREVIEW
           </Text>
           <Text preset="displayLarge" style={{ marginTop: spacing.xs }}>
-            {formatRupees(weekTakeHome)}
+            {formatRupees(dashboard?.earningsPaise ?? 0)}
           </Text>
           <Text preset="body" color="secondary" style={{ marginTop: spacing.xs }}>
             After the 20 percent platform fee. Payouts land T+2.
@@ -93,10 +105,10 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
 
         {/* Today + rating strip */}
         <View style={styles.statRow}>
-          <StatTile value={String(todayBooked.length)} label="TODAY" />
-          <StatTile value={String(upcoming)} label="UPCOMING" />
+          <StatTile value={String(todaysSessions.length)} label="TODAY" />
+          <StatTile value={String(pending.length)} label="REQUESTS" />
           <StatTile
-            value={rating.toFixed(1)}
+            value={dashboard?.ratingAverage != null ? dashboard.ratingAverage.toFixed(1) : "—"}
             label="RATING"
             icon={<Star size={14} weight="fill" color={colors.text.secondary} />}
           />
@@ -106,7 +118,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
         <Text preset="label" color="secondary" style={styles.section}>
           TODAY
         </Text>
-        {todayBooked.length === 0 ? (
+        {todaysSessions.length === 0 ? (
           <Card padded>
             <Text preset="body" color="secondary">
               No sessions today. Open a slot from your calendar and clients can book it.
@@ -114,18 +126,18 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           </Card>
         ) : (
           <Card padded>
-            {todayBooked.map((s, i) => (
+            {todaysSessions.map((s, i) => (
               <View key={s.id}>
                 {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
                 <View style={styles.sessionRow}>
                   <View style={{ flex: 1 }}>
-                    <Text preset="bodyMedium">{s.clientName}</Text>
+                    <Text preset="bodyMedium">{s.gym.name}</Text>
                     <Text preset="body" color="secondary">
-                      {s.gym}
+                      {formatRupees(s.pricePaise)}
                     </Text>
                   </View>
                   <Text preset="bodyMedium" color="secondary">
-                    {formatTime(s.startIso)}
+                    {formatTime(s.scheduledFor)}
                   </Text>
                 </View>
               </View>

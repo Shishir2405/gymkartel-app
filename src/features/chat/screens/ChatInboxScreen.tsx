@@ -3,7 +3,6 @@ import { FlatList, StyleSheet, View } from "react-native";
 import { ChatCircle } from "phosphor-react-native";
 import {
   Text,
-  Card,
   Avatar,
   Divider,
   Skeleton,
@@ -14,22 +13,22 @@ import {
 } from "@/ui";
 import { Screen } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
-import { useBookingsQuery, type BookingRowFragment } from "@/graphql/generated/graphql";
+import { useChatInboxQuery, type ChatThreadRowFragment } from "@/graphql/generated/graphql";
 import { toUiError } from "@/lib/errors";
 import { formatTime } from "@/lib/format";
 import { maskPii } from "../lib/mask";
-import { mockThread } from "../lib/messages";
 
 /**
- * Chat inbox — one thread per booking that has unlocked chat. The last-message
- * preview is masked exactly like the thread itself, so PII never leaks even in
- * the list. When nothing is unlocked, the empty state explains the gate.
+ * Chat inbox — one thread per booking that has unlocked chat, from `chatInbox`.
+ * The last-message preview is masked on render (belt-and-suspenders over the
+ * server-side masking), so PII never leaks even in the list. When nothing is
+ * unlocked, the empty state explains the gate.
  */
 export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) {
-  const [{ data, fetching, error }, refetch] = useBookingsQuery();
+  const [{ data, fetching, error }, refetch] = useChatInboxQuery();
   const uiError = toUiError(error);
 
-  const threads = (data?.bookings ?? []).filter((b) => b.chatUnlocked);
+  const threads = data?.chatInbox ?? [];
 
   if (fetching && !data) {
     return (
@@ -51,7 +50,7 @@ export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) 
           Messages
         </Text>
         <StatePlaceholder
-          variant="error"
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
           title="We could not load your messages"
           body={uiError.message}
           actionLabel="Try again"
@@ -81,7 +80,7 @@ export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) 
     <Screen padded={false}>
       <FlatList
         data={threads}
-        keyExtractor={(b) => b.id}
+        keyExtractor={(t) => t.bookingId}
         ListHeaderComponent={
           <Text preset="title" style={styles.listTitle}>
             Messages
@@ -91,10 +90,10 @@ export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) 
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <InboxRow
-            booking={item}
+            thread={item}
             onPress={() =>
               navigation.navigate("ChatThread", {
-                bookingId: item.id,
+                bookingId: item.bookingId,
                 peerName: item.coach.displayName,
               })
             }
@@ -107,24 +106,23 @@ export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) 
 }
 
 function InboxRow({
-  booking,
+  thread,
   onPress,
 }: {
-  booking: BookingRowFragment;
+  thread: ChatThreadRowFragment;
   onPress: () => void;
 }) {
-  const thread = mockThread(booking.id);
-  const last = thread[thread.length - 1];
-  const preview = last ? maskPii(last.body) : "";
-  const time = last ? formatTime(last.sentAtIso) : "";
+  const last = thread.lastMessage;
+  const preview = last ? maskPii(last.text) : "No messages yet";
+  const time = last ? formatTime(last.sentAt) : "";
 
   return (
     <PressableRow onPress={onPress} style={styles.row}>
-      <Avatar name={booking.coach.displayName} size={48} />
+      <Avatar name={thread.coach.displayName} size={48} />
       <View style={styles.rowText}>
         <View style={styles.rowHead}>
           <Text preset="bodyMedium" numberOfLines={1} style={styles.name}>
-            {booking.coach.displayName}
+            {thread.coach.displayName}
           </Text>
           <Text preset="body" color="secondary">
             {time}

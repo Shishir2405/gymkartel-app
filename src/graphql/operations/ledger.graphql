@@ -1,0 +1,40 @@
+fragment WorkoutChipParts on WorkoutChip {
+  kind
+  exercise
+  sets
+  reps
+  weightKg
+  distanceKm
+  durationMin
+  uncertain
+  note
+  raw
+}
+
+fragment LedgerEntryRow on LedgerEntry {
+  id
+  isPR
+  loggedByCoach
+  loggedAt
+  chip {
+    ...WorkoutChipParts
+  }
+}
+
+query LedgerToday {
+  ledgerToday {
+    ...LedgerEntryRow
+  }
+}
+
+query LedgerHistory($exercise: String) {
+  ledgerHistory(exercise: $exercise) {
+    ...LedgerEntryRow
+  }
+}
+
+mutation LogWorkout($text: String!) {
+  logWorkout(text: $text) {
+    ...LedgerEntryRow
+  }
+}

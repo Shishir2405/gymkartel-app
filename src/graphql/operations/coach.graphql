@@ -1,0 +1,89 @@
+fragment CoachSessionRow on Booking {
+  id
+  scheduledFor
+  pricePaise
+  status
+  insured
+  chatUnlocked
+  coach {
+    id
+    displayName
+  }
+  gym {
+    id
+    name
+    tier
+  }
+}
+
+fragment CoachClientRow on CoachClient {
+  id
+  name
+  avatarUrl
+  sessions
+}
+
+fragment CoachProfileParts on Coach {
+  id
+  displayName
+  verified
+  badge
+  bio
+  specialties
+  pricePerSessionPaise
+  ratingAverage
+  sessionsCompleted
+  tierFloor
+  certifications {
+    title
+    issuer
+    status
+  }
+}
+
+query CoachDashboard {
+  coachDashboard {
+    ratingAverage
+    sessionsCompleted
+    earningsPaise
+    todaysSessions {
+      ...CoachSessionRow
+    }
+    pendingRequests {
+      ...CoachSessionRow
+    }
+  }
+}
+
+query CoachCalendar {
+  coachCalendar {
+    ...CoachSessionRow
+  }
+}
+
+query CoachClients {
+  coachClients {
+    ...CoachClientRow
+  }
+}
+
+query CoachClient($id: ID!) {
+  coachClient(id: $id) {
+    ...CoachClientRow
+  }
+}
+
+query CoachEarnings {
+  coachEarnings {
+    grossPaise
+    takeHomePaise
+    payoutSchedule
+    estimatedTdsPaise
+  }
+}
+
+query CoachProfile {
+  coachProfile {
+    ...CoachProfileParts
+  }
+}

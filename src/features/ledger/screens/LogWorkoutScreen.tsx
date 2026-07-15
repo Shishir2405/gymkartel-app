@@ -22,22 +22,26 @@ import {
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { parseWorkout } from "@/features/ledger/parser/workoutParser";
-import { useLoggedEntries } from "@/features/ledger/hooks/useLoggedEntries";
+import { useLogWorkoutMutation, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
+import { LedgerRow } from "@/features/ledger/screens/TodayScreen";
+import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
 const PLACEHOLDERS = ["bench 4x8 60kg", "squat 5x5 100kg", "deadlift 3x5 120kg"];
 
 /**
  * The AI log input. Keyboard opens on entry; the placeholder cycles through real
- * examples while the field is empty. Every keystroke re-parses live — recognized
- * tokens show as normal chips, anything ambiguous surfaces as an amber "?" chip.
- * We never silently guess. Save appends to the local log and clears the field.
+ * examples while the field is empty. Every keystroke re-parses live on-device —
+ * recognized tokens show as normal chips, anything ambiguous surfaces as an
+ * amber "?" chip; we never silently guess. Save sends the raw text to the
+ * `logWorkout` mutation and the server's parsed ledger entries append to the
+ * session list.
  */
 export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
   const toast = useToast();
   const inputRef = useRef<TextInput>(null);
-  const add = useLoggedEntries((s) => s.add);
-  const entries = useLoggedEntries((s) => s.entries);
+  const [{ fetching, error }, logWorkout] = useLogWorkoutMutation();
+  const [entries, setEntries] = useState<LedgerEntryRowFragment[]>([]);
 
   const [value, setValue] = useState("");
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -53,11 +57,18 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
 
   const parsed = useMemo(() => parseWorkout(value), [value]);
   const trimmed = value.trim();
-  const canSave = trimmed.length > 0;
+  const canSave = trimmed.length > 0 && !fetching;
 
-  const onSave = () => {
+  const onSave = async () => {
     if (!canSave) return;
-    add(trimmed, parsed);
+    const result = await logWorkout({ text: trimmed });
+    const uiError = toUiError(result.error);
+    if (uiError) {
+      toast.show(uiError.message);
+      return;
+    }
+    const logged = result.data?.logWorkout ?? [];
+    setEntries((prev) => [...logged, ...prev]);
     void haptics.success();
     toast.show("Logged");
     setValue("");
@@ -87,7 +98,7 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="done"
-              onSubmitEditing={onSave}
+              onSubmitEditing={() => void onSave()}
               selectionColor={colors.accent.primary}
             />
             {parsed.chips.length > 0 ? (
@@ -106,6 +117,12 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
           {parsed.chips.some((c) => c.uncertain) ? (
             <Text preset="body" color="secondary" style={styles.uncertainNote}>
               Amber chips are unsure. Tidy the wording, for example "60kg" or "4x8".
+            </Text>
+          ) : null}
+
+          {error ? (
+            <Text preset="body" style={styles.errorNote}>
+              {toUiError(error)?.message}
             </Text>
           ) : null}
 
@@ -129,24 +146,7 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
                 {entries.map((e, i) => (
                   <View key={e.id}>
                     {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
-                    <View style={styles.entryRow}>
-                      <View style={styles.entryMeta}>
-                        <Text preset="bodyMedium" numberOfLines={1}>
-                          {e.exercise ? titleCase(e.exercise) : e.raw}
-                        </Text>
-                        <Text preset="body" color="secondary">
-                          {setSummary(e.sets, e.reps)}
-                        </Text>
-                      </View>
-                      {e.weightKg != null ? (
-                        <View style={styles.weightWrap}>
-                          <Text preset="displayMedium">{e.weightKg}</Text>
-                          <Text preset="label" color="secondary">
-                            kg
-                          </Text>
-                        </View>
-                      ) : null}
-                    </View>
+                    <LedgerRow entry={e} />
                   </View>
                 ))}
               </Card>
@@ -158,27 +158,13 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
           <Button
             label="Save"
             icon={<NotePencil size={20} color={colors.text.primary} weight="regular" />}
-            onPress={onSave}
+            onPress={() => void onSave()}
             disabled={!canSave}
           />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-}
-
-function setSummary(sets: number | null, reps: number | null): string {
-  if (sets != null && reps != null) return `${sets} sets · ${reps} reps`;
-  if (sets != null) return `${sets} sets`;
-  if (reps != null) return `${reps} reps`;
-  return "Logged";
-}
-
-function titleCase(s: string): string {
-  return s
-    .split(" ")
-    .map((w) => (w.length > 0 ? (w[0] ?? "").toUpperCase() + w.slice(1) : w))
-    .join(" ");
 }
 
 const styles = StyleSheet.create({
@@ -195,12 +181,10 @@ const styles = StyleSheet.create({
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.lg },
   hint: { marginTop: spacing.md },
   uncertainNote: { marginTop: spacing.md },
+  errorNote: { marginTop: spacing.md, color: colors.serious.danger },
   listHeading: { marginTop: spacing.xl, marginBottom: spacing.md },
   list: { flex: 1 },
   listContent: { paddingBottom: spacing.lg },
-  entryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  entryMeta: { flex: 1, paddingRight: spacing.md },
-  weightWrap: { alignItems: "flex-end" },
   footer: {
     paddingHorizontal: spacing.screen,
     paddingBottom: spacing.xl,

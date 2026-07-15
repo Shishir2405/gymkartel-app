@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Plus, Check } from "phosphor-react-native";
+import { Check } from "phosphor-react-native";
 import {
   Text,
   Card,
   Sheet,
   Button,
+  Skeleton,
+  StatePlaceholder,
   PressableRow,
   useToast,
   colors,
@@ -15,20 +17,24 @@ import {
 } from "@/ui";
 import type { CoachTabScreenProps } from "@/app/navigation/types";
 import { formatTime } from "@/lib/format";
-import { MOCK_SESSIONS, type CoachSession } from "@/features/coachside/lib/mock";
+import { toUiError } from "@/lib/errors";
+import { useCoachCalendarQuery, type CoachSessionRowFragment } from "@/graphql/generated/graphql";
 
 const HOURS = [6, 7, 8, 12, 17, 18, 19];
 
 /**
- * Coach calendar. A row of date pills across the top, the selected day's
- * sessions below. Booked sessions carry the client, gym and time and open the
- * client detail. A manage-availability sheet toggles which hour slots are open.
+ * Coach calendar. A row of date pills across the top, the selected day's booked
+ * sessions below — live from `coachCalendar`. A manage-availability sheet
+ * toggles which hour slots are open (held locally; availability has no server
+ * surface yet). Loading / empty / error states preserved.
  */
-export function CoachCalendarScreen({ navigation }: CoachTabScreenProps<"CoachCalendar">) {
+export function CoachCalendarScreen(_props: CoachTabScreenProps<"CoachCalendar">) {
   const { show } = useToast();
   const [selected, setSelected] = useState(0);
   const [manageOpen, setManageOpen] = useState(false);
   const [openHours, setOpenHours] = useState<number[]>([6, 7, 18]);
+  const [{ data, fetching, error }, refetch] = useCoachCalendarQuery();
+  const uiError = toUiError(error);
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -39,9 +45,9 @@ export function CoachCalendarScreen({ navigation }: CoachTabScreenProps<"CoachCa
   }, []);
 
   const selectedDate = days[selected] ?? new Date();
-  const sessions = MOCK_SESSIONS.filter(
-    (s) => new Date(s.startIso).toDateString() === selectedDate.toDateString(),
-  ).sort((a, b) => a.startIso.localeCompare(b.startIso));
+  const sessions = (data?.coachCalendar ?? [])
+    .filter((s) => new Date(s.scheduledFor).toDateString() === selectedDate.toDateString())
+    .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor));
 
   const toggleHour = (h: number) => {
     setOpenHours((prev) => (prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h]));
@@ -82,22 +88,29 @@ export function CoachCalendarScreen({ navigation }: CoachTabScreenProps<"CoachCa
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {sessions.length === 0 ? (
+        {fetching && !data ? (
+          <>
+            <Skeleton height={72} radius={radius.card} style={{ marginTop: spacing.md }} />
+            <Skeleton height={72} radius={radius.card} style={{ marginTop: spacing.md }} />
+          </>
+        ) : uiError ? (
+          <View style={{ marginTop: spacing.xl }}>
+            <StatePlaceholder
+              variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+              title="We could not load your calendar"
+              body={uiError.message}
+              actionLabel="Try again"
+              onAction={() => refetch({ requestPolicy: "network-only" })}
+            />
+          </View>
+        ) : sessions.length === 0 ? (
           <Card padded style={{ marginTop: spacing.md }}>
             <Text preset="body" color="secondary">
               No sessions on this day. Open availability so clients can book.
             </Text>
           </Card>
         ) : (
-          sessions.map((s) => (
-            <SessionCard
-              key={s.id}
-              session={s}
-              onPress={() => {
-                if (s.clientId) navigation.navigate("CoachClientDetail", { clientId: s.clientId });
-              }}
-            />
-          ))
+          sessions.map((s) => <SessionCard key={s.id} session={s} />)
         )}
       </ScrollView>
 
@@ -135,37 +148,36 @@ export function CoachCalendarScreen({ navigation }: CoachTabScreenProps<"CoachCa
   );
 }
 
-function SessionCard({ session, onPress }: { session: CoachSession; onPress: () => void }) {
-  if (session.status === "FREE") {
-    return (
-      <Card padded style={styles.sessionCard}>
-        <View style={styles.freeRow}>
-          <Plus size={18} color={colors.text.secondary} />
-          <Text preset="bodyMedium" color="secondary" style={{ marginLeft: spacing.sm, flex: 1 }}>
-            Open slot
-          </Text>
-          <Text preset="bodyMedium" color="secondary">
-            {formatTime(session.startIso)}
-          </Text>
-        </View>
-      </Card>
-    );
-  }
+function SessionCard({ session }: { session: CoachSessionRowFragment }) {
   return (
-    <PressableRow onPress={onPress}>
-      <Card padded style={styles.sessionCard}>
-        <View style={styles.bookedRow}>
-          <View style={{ flex: 1 }}>
-            <Text preset="bodyMedium">{session.clientName}</Text>
-            <Text preset="body" color="secondary">
-              {session.gym}
-            </Text>
-          </View>
-          <Text preset="bodyMedium">{formatTime(session.startIso)}</Text>
+    <Card padded style={styles.sessionCard}>
+      <View style={styles.bookedRow}>
+        <View style={{ flex: 1 }}>
+          <Text preset="bodyMedium">{session.gym.name}</Text>
+          <Text preset="body" color="secondary">
+            {statusLabel(session.status)}
+          </Text>
         </View>
-      </Card>
-    </PressableRow>
+        <Text preset="bodyMedium">{formatTime(session.scheduledFor)}</Text>
+      </View>
+    </Card>
   );
+}
+
+function statusLabel(status: CoachSessionRowFragment["status"]): string {
+  switch (status) {
+    case "CONFIRMED":
+      return "Confirmed";
+    case "COMPLETED":
+      return "Completed";
+    case "PENDING_PAYMENT":
+      return "Awaiting payment";
+    case "CANCELLED_BY_MEMBER":
+    case "CANCELLED_BY_COACH":
+      return "Cancelled";
+    default:
+      return "";
+  }
 }
 
 function formatHour(h: number): string {
@@ -198,7 +210,6 @@ const styles = StyleSheet.create({
   pillSel: { borderColor: colors.accent.primary, borderWidth: 1.5, backgroundColor: colors.surface.pressed },
   content: { paddingHorizontal: spacing.screen, paddingBottom: spacing.xxxl },
   sessionCard: { marginTop: spacing.md, width: "100%" },
-  freeRow: { flexDirection: "row", alignItems: "center" },
   bookedRow: { flexDirection: "row", alignItems: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   slot: {

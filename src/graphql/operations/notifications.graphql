@@ -1,0 +1,22 @@
+fragment NotificationRow on AppNotification {
+  id
+  kind
+  title
+  body
+  read
+  createdAt
+}
+
+query Notifications {
+  notifications {
+    ...NotificationRow
+  }
+}
+
+mutation MarkNotificationRead($id: ID!) {
+  markNotificationRead(id: $id)
+}
+
+mutation RegisterPushToken($token: String!) {
+  registerPushToken(token: $token)
+}

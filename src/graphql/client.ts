@@ -31,6 +31,25 @@ const graphcache = cacheExchange({
     PassLadderRow: (data) => (data as { pack?: string }).pack ?? null,
     TopUpRequired: () => null,
     SyncCheckInResult: () => null,
+    // New feature surface — types without an `id` are keyed explicitly or
+    // embedded (null) so graphcache normalizes cleanly and stays warning-free.
+    ChatThread: (data) => (data as { bookingId?: string }).bookingId ?? null,
+    LocationShare: () => null,
+    WorkoutChip: () => null,
+    Leaderboard: (data) => {
+      const d = data as { segment?: string; scopeKey?: string; season?: string };
+      return d.segment && d.season ? `${d.segment}:${d.scopeKey ?? ""}:${d.season}` : null;
+    },
+    LeaderboardEntry: () => null,
+    RankCard: () => null,
+    RankThreshold: () => null,
+    StreakCalendar: () => null,
+    GeoPoint: () => null,
+    TrustedContact: () => null,
+    CoachDashboard: () => null,
+    CoachEarnings: () => null,
+    CoachCertification: () => null,
+    FeatureFlag: (data) => (data as { key?: string }).key ?? null,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { ShieldWarning } from "phosphor-react-native";
 import {
@@ -14,6 +14,11 @@ import {
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { useSos } from "@/features/system/components/SosProvider";
+import {
+  useTrustedContactQuery,
+  useSetTrustedContactMutation,
+} from "@/graphql/generated/graphql";
+import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
 /**
@@ -24,12 +29,32 @@ import { haptics } from "@/lib/haptics";
 export function SosContactsScreen(_props: MemberScreenProps<"SosContacts">) {
   const sos = useSos();
   const toast = useToast();
+  const [{ data }] = useTrustedContactQuery();
+  const [{ fetching }, setTrustedContact] = useSetTrustedContactMutation();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  const canSave = name.trim().length > 0 && phone.trim().length >= 10;
+  // Prefill from the saved trusted contact once it resolves.
+  const saved = data?.trustedContact;
+  useEffect(() => {
+    if (saved) {
+      setName((prev) => (prev.length === 0 ? saved.name : prev));
+      setPhone((prev) => (prev.length === 0 ? saved.phone.replace(/^\+91/, "") : prev));
+    }
+  }, [saved]);
 
-  const onSave = () => {
+  const canSave = name.trim().length > 0 && phone.trim().length >= 10 && !fetching;
+
+  const onSave = async () => {
+    if (!canSave) return;
+    const result = await setTrustedContact({
+      input: { name: name.trim(), phone: `+91${phone.trim()}` },
+    });
+    const uiError = toUiError(result.error);
+    if (uiError) {
+      toast.show(uiError.message);
+      return;
+    }
     void haptics.success();
     toast.show("Saved");
   };
@@ -37,7 +62,7 @@ export function SosContactsScreen(_props: MemberScreenProps<"SosContacts">) {
   return (
     <Screen
       scroll
-      footer={<Button label="Save contact" onPress={onSave} disabled={!canSave} />}
+      footer={<Button label="Save contact" onPress={() => void onSave()} disabled={!canSave} />}
     >
       <Text preset="title">SOS & trusted contact</Text>
       <Text preset="body" color="secondary" style={styles.intro}>

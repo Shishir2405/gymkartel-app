@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { ClockCounterClockwise } from "phosphor-react-native";
 import {
@@ -15,35 +15,64 @@ import {
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { formatDate } from "@/lib/format";
-import {
-  MOCK_EXERCISE_HISTORY,
-  type ExerciseHistory,
-} from "@/features/ledger/data/mockLedger";
+import { toUiError } from "@/lib/errors";
+import { useLedgerHistoryQuery, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
+
+interface ExerciseGroup {
+  exercise: string;
+  entries: LedgerEntryRowFragment[];
+}
+
+/** Group ledger entries by exercise, newest session first within each group. */
+function groupByExercise(entries: readonly LedgerEntryRowFragment[]): ExerciseGroup[] {
+  const map = new Map<string, LedgerEntryRowFragment[]>();
+  for (const entry of entries) {
+    const key = entry.chip.exercise ? titleCase(entry.chip.exercise) : "Other";
+    const list = map.get(key) ?? [];
+    list.push(entry);
+    map.set(key, list);
+  }
+  return Array.from(map.entries()).map(([exercise, list]) => ({
+    exercise,
+    entries: [...list].sort((a, b) => b.loggedAt.localeCompare(a.loggedAt)),
+  }));
+}
 
 /**
  * The read-only record: every exercise you have logged, grouped, newest session
- * first. Weight figures use Barlow so the numbers carry the card.
+ * first — live from `ledgerHistory`. Weight figures use Barlow so the numbers
+ * carry the card. Loading / empty / error states preserved.
  */
 export function ExerciseHistoryScreen(_props: MemberScreenProps<"ExerciseHistory">) {
-  const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<ExerciseHistory[]>([]);
+  const [{ data, fetching, error }, refetch] = useLedgerHistoryQuery();
+  const uiError = toUiError(error);
+  const groups = useMemo(
+    () => groupByExercise(data?.ledgerHistory ?? []),
+    [data?.ledgerHistory],
+  );
 
-  useEffect(() => {
-    // Stand-in for the history query resolving from cache.
-    const id = setTimeout(() => {
-      setGroups(MOCK_EXERCISE_HISTORY);
-      setLoading(false);
-    }, 450);
-    return () => clearTimeout(id);
-  }, []);
-
-  if (loading) {
+  if (fetching && !data) {
     return (
       <Screen scroll>
         <Text preset="title">Exercise history</Text>
         <Skeleton height={140} radius={radius.card} style={{ marginTop: spacing.lg }} />
         <Skeleton height={140} radius={radius.card} style={{ marginTop: spacing.md }} />
         <Skeleton height={140} radius={radius.card} style={{ marginTop: spacing.md }} />
+      </Screen>
+    );
+  }
+
+  if (uiError) {
+    return (
+      <Screen>
+        <StatePlaceholder
+          icon={<ClockCounterClockwise size={40} color={colors.text.secondary} />}
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+          title="We could not load your history"
+          body={uiError.message}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
       </Screen>
     );
   }
@@ -68,24 +97,31 @@ export function ExerciseHistoryScreen(_props: MemberScreenProps<"ExerciseHistory
         <View key={group.exercise}>
           <SectionHeader title={group.exercise} />
           <Card padded>
-            {group.history.map((h, i) => (
-              <View key={`${group.exercise}-${h.date}`}>
+            {group.entries.map((entry, i) => (
+              <View key={entry.id}>
                 {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
                 <View style={styles.row}>
                   <View style={styles.meta}>
-                    <Text preset="bodyMedium">
-                      {h.sets} sets · {h.reps} reps
-                    </Text>
+                    <View style={styles.setLine}>
+                      <Text preset="bodyMedium">{setSummary(entry.chip.sets, entry.chip.reps)}</Text>
+                      {entry.isPR ? (
+                        <Text preset="label" color="accent" style={styles.pr}>
+                          PR
+                        </Text>
+                      ) : null}
+                    </View>
                     <Text preset="body" color="secondary">
-                      {formatDate(h.date)}
+                      {formatDate(entry.loggedAt)}
                     </Text>
                   </View>
-                  <View style={styles.weightWrap}>
-                    <Text preset="displayMedium">{h.weightKg}</Text>
-                    <Text preset="label" color="secondary">
-                      kg
-                    </Text>
-                  </View>
+                  {entry.chip.weightKg != null ? (
+                    <View style={styles.weightWrap}>
+                      <Text preset="displayMedium">{entry.chip.weightKg}</Text>
+                      <Text preset="label" color="secondary">
+                        kg
+                      </Text>
+                    </View>
+                  ) : null}
                 </View>
               </View>
             ))}
@@ -96,8 +132,24 @@ export function ExerciseHistoryScreen(_props: MemberScreenProps<"ExerciseHistory
   );
 }
 
+function setSummary(sets: number | null, reps: number | null): string {
+  if (sets != null && reps != null) return `${sets} sets · ${reps} reps`;
+  if (sets != null) return `${sets} sets`;
+  if (reps != null) return `${reps} reps`;
+  return "Logged";
+}
+
+function titleCase(s: string): string {
+  return s
+    .split(" ")
+    .map((w) => (w.length > 0 ? (w[0] ?? "").toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   meta: { flex: 1, paddingRight: spacing.md },
+  setLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  pr: {},
   weightWrap: { alignItems: "flex-end" },
 });

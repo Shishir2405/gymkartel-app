@@ -24,50 +24,64 @@ import {
   spacing,
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
-import { useBookingsQuery } from "@/graphql/generated/graphql";
+import {
+  useBookingsQuery,
+  useViewerQuery,
+  useChatThreadQuery,
+  useSendMessageMutation,
+  useMessageReceivedSubscription,
+  type ChatMessageRowFragment,
+} from "@/graphql/generated/graphql";
 import { formatTime } from "@/lib/format";
 import { haptics } from "@/lib/haptics";
 import { SosShield } from "@/features/system/components/SosShield";
 import { maskPii } from "../lib/mask";
-import { mockThread, type ChatMessage } from "../lib/messages";
 
 /**
- * Chat thread. EVERY message body — mock, incoming, and just-sent — is rendered
- * through `maskPii`, so phone numbers, emails and links are hidden in both
- * directions. The SOS shield sits top-right; a location affordance and a safety
- * strip keep the on-platform guarantees visible. If the booking is not unlocked
- * the thread is replaced by a plain locked state.
+ * Chat thread. Messages come live from `chatThread`, new ones arrive over the
+ * `messageReceived` subscription, and sends go through `sendMessage`. EVERY
+ * message body is rendered through `maskPii` (over the server-side masking), so
+ * phone numbers, emails and links are hidden in both directions. The SOS shield
+ * sits top-right; a location affordance and the safety strip keep the
+ * on-platform guarantees visible. A locked booking shows a plain locked state.
  */
 export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatThread">) {
   const { bookingId, peerName } = route.params;
-  const [{ data }] = useBookingsQuery();
+  const [{ data: bookingsData }] = useBookingsQuery();
+  const [{ data: viewerData }] = useViewerQuery();
+  const [{ data: threadData }, refetchThread] = useChatThreadQuery({
+    variables: { bookingId },
+  });
+  const [, sendMessage] = useSendMessageMutation();
+
+  // Live messages: on each incoming message, refresh the thread from network.
+  useMessageReceivedSubscription({ variables: { bookingId } }, (_prev, incoming) => {
+    refetchThread({ requestPolicy: "network-only" });
+    return incoming;
+  });
+
+  const viewerId = viewerData?.viewer?.id ?? null;
 
   // Only a booking we can positively see AND is not unlocked is treated as
   // locked; unknown bookings (no server / entered from a profile) stay usable.
-  const booking = data?.bookings.find((b) => b.id === bookingId);
+  const booking = bookingsData?.bookings.find((b) => b.id === bookingId);
   const locked = booking != null && !booking.chatUnlocked;
 
-  const [messages, setMessages] = useState<ChatMessage[]>(() => mockThread(bookingId));
-  const [draft, setDraft] = useState("");
-  const listRef = useRef<FlatList<ChatMessage>>(null);
-
+  const messages = useMemo(() => threadData?.chatThread ?? [], [threadData?.chatThread]);
+  // Inverted list renders newest at the bottom.
   const ordered = useMemo(() => [...messages].reverse(), [messages]);
 
-  const onSend = useCallback(() => {
+  const [draft, setDraft] = useState("");
+  const listRef = useRef<FlatList<ChatMessageRowFragment>>(null);
+
+  const onSend = useCallback(async () => {
     const body = draft.trim();
     if (!body) return;
     void haptics.light();
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `${bookingId}-local-${prev.length + 1}`,
-        fromMe: true,
-        body,
-        sentAtIso: new Date().toISOString(),
-      },
-    ]);
     setDraft("");
-  }, [draft, bookingId]);
+    await sendMessage({ bookingId, text: body });
+    refetchThread({ requestPolicy: "network-only" });
+  }, [draft, bookingId, sendMessage, refetchThread]);
 
   const header = (
     <SafeAreaView edges={["top"]}>
@@ -125,7 +139,9 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.messages}
           showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => <Bubble message={item} />}
+          renderItem={({ item }) => (
+            <Bubble message={item} fromMe={viewerId != null && item.from === viewerId} />
+          )}
         />
 
         <SafeAreaView edges={["bottom"]} style={styles.inputWrap}>
@@ -143,12 +159,12 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
               placeholder="Message"
               placeholderTextColor={colors.text.disabled}
               multiline
-              onSubmitEditing={onSend}
+              onSubmitEditing={() => void onSend()}
             />
             <IconButton
               icon={PaperPlaneRight}
               accessibilityLabel="Send"
-              onPress={onSend}
+              onPress={() => void onSend()}
               color={draft.trim() ? colors.accent.primary : colors.text.disabled}
               weight="fill"
             />
@@ -159,14 +175,14 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
   );
 }
 
-function Bubble({ message }: { message: ChatMessage }) {
-  const masked = maskPii(message.body);
+function Bubble({ message, fromMe }: { message: ChatMessageRowFragment; fromMe: boolean }) {
+  const masked = maskPii(message.text);
   return (
-    <View style={[styles.bubbleRow, message.fromMe ? styles.rowMe : styles.rowPeer]}>
-      <View style={[styles.bubble, message.fromMe ? styles.bubbleMe : styles.bubblePeer]}>
+    <View style={[styles.bubbleRow, fromMe ? styles.rowMe : styles.rowPeer]}>
+      <View style={[styles.bubble, fromMe ? styles.bubbleMe : styles.bubblePeer]}>
         <Text preset="body">{masked}</Text>
         <Text preset="label" color="secondary" style={styles.time}>
-          {formatTime(message.sentAtIso)}
+          {formatTime(message.sentAt)}
         </Text>
       </View>
     </View>

@@ -1,0 +1,22 @@
+fragment LeaderboardEntryRow on LeaderboardEntry {
+  userId
+  displayName
+  streak
+  totalCheckIns
+  position
+  isSelf
+}
+
+query Leaderboard($segment: LeaderboardSegment!, $scopeKey: String, $limit: Int) {
+  leaderboard(segment: $segment, scopeKey: $scopeKey, limit: $limit) {
+    segment
+    scopeKey
+    season
+    page {
+      ...LeaderboardEntryRow
+    }
+    self {
+      ...LeaderboardEntryRow
+    }
+  }
+}

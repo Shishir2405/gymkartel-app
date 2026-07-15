@@ -13,6 +13,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CaretLeft } from "phosphor-react-native";
 import { useToast, colors, spacing, radius } from "@/ui";
 import type { CoachScreenProps } from "@/app/navigation/types";
+import { useTriggerSosMutation, SosKind } from "@/graphql/generated/graphql";
+import { toUiError } from "@/lib/errors";
 
 type Severity = "MINOR" | "MODERATE" | "SERIOUS";
 const SEVERITIES: { key: Severity; label: string }[] = [
@@ -29,11 +31,26 @@ const SEVERITIES: { key: Severity; label: string }[] = [
  */
 export function CoachIncidentReportScreen({ navigation }: CoachScreenProps<"CoachIncidentReport">) {
   const { show } = useToast();
+  const [{ fetching }, triggerSos] = useTriggerSosMutation();
   const [what, setWhat] = useState("");
   const [when, setWhen] = useState("");
   const [severity, setSeverity] = useState<Severity | null>(null);
 
-  const canSubmit = what.trim().length > 0 && when.trim().length > 0 && severity !== null;
+  const canSubmit =
+    what.trim().length > 0 && when.trim().length > 0 && severity !== null && !fetching;
+
+  const onSubmit = async () => {
+    if (!canSubmit) return;
+    const note = `[${severity}] ${what.trim()} (when: ${when.trim()})`;
+    const result = await triggerSos({ input: { kind: SosKind.ReportIncident, note } });
+    const uiError = toUiError(result.error);
+    if (uiError) {
+      show(uiError.message);
+      return;
+    }
+    show("Report submitted");
+    navigation.goBack();
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -92,11 +109,7 @@ export function CoachIncidentReportScreen({ navigation }: CoachScreenProps<"Coac
 
         <View style={styles.footer}>
           <Pressable
-            onPress={() => {
-              if (!canSubmit) return;
-              show("Report submitted");
-              navigation.goBack();
-            }}
+            onPress={() => void onSubmit()}
             disabled={!canSubmit}
             style={[styles.submit, !canSubmit && styles.submitDisabled]}
           >

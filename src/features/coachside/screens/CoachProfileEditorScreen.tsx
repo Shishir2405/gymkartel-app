@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { CaretLeft, CheckCircle } from "phosphor-react-native";
 import {
@@ -9,32 +9,83 @@ import {
   Divider,
   Button,
   IconButton,
+  Skeleton,
+  StatePlaceholder,
   useToast,
   colors,
   spacing,
   radius,
 } from "@/ui";
 import type { CoachScreenProps } from "@/app/navigation/types";
-import { useViewerQuery } from "@/graphql/generated/graphql";
+import { useCoachProfileQuery, CertificationStatus } from "@/graphql/generated/graphql";
 import { formatRupees } from "@/lib/format";
+import { toUiError } from "@/lib/errors";
 import { COACH_TAKE_RATE } from "@gymkartel/contracts";
-import { MOCK_SPECIALTIES, MOCK_CERTS, type CertStatus } from "@/features/coachside/lib/mock";
+import { MOCK_SPECIALTIES } from "@/features/coachside/lib/mock";
 
 /**
- * Coach profile editor. Display name, bio, specialty chips and price. The price
- * field carries a LIVE take-home preview via COACH_TAKE_RATE so the coach always
- * sees what they keep. Certifications are read-only status rows.
+ * Coach profile editor. Display name, bio, specialty chips and price are
+ * pre-filled from `coachProfile`. The price field carries a LIVE take-home
+ * preview via COACH_TAKE_RATE (sourced from @gymkartel/contracts) so the coach
+ * always sees what they keep. Certifications are read-only status rows straight
+ * from the server (`certifications` with their verification status).
  */
 export function CoachProfileEditorScreen({ navigation }: CoachScreenProps<"CoachProfileEditor">) {
-  const [{ data }] = useViewerQuery();
+  const [{ data, fetching, error }, refetch] = useCoachProfileQuery();
   const { show } = useToast();
+  const profile = data?.coachProfile ?? null;
+  const uiError = toUiError(error);
 
-  const [name, setName] = useState(data?.viewer?.name ?? "");
-  const [bio, setBio] = useState(
-    "Strength and conditioning coach. I build plans you can hold to, and I hold you to them.",
-  );
-  const [selected, setSelected] = useState<string[]>(["Strength", "Mobility"]);
-  const [priceText, setPriceText] = useState("1299");
+  if (fetching && !profile) {
+    return (
+      <Screen scroll>
+        <Text preset="title">Edit profile</Text>
+        <Skeleton height={48} radius={radius.md} style={{ marginTop: spacing.xl }} />
+        <Skeleton height={96} radius={radius.md} style={{ marginTop: spacing.lg }} />
+        <Skeleton height={140} radius={radius.card} style={{ marginTop: spacing.lg }} />
+      </Screen>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Screen>
+        <StatePlaceholder
+          variant={uiError?.code === "OFFLINE" ? "offline" : "error"}
+          title="We could not load your profile"
+          body={uiError?.message ?? "Please try again."}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
+      </Screen>
+    );
+  }
+
+  return <ProfileForm profile={profile} onSaved={() => show("Saved")} onBack={() => navigation.goBack()} />;
+}
+
+type Profile = NonNullable<ReturnType<typeof useCoachProfileQuery>[0]["data"]>["coachProfile"];
+
+function ProfileForm({
+  profile,
+  onSaved,
+  onBack,
+}: {
+  profile: Profile;
+  onSaved: () => void;
+  onBack: () => void;
+}) {
+  const [name, setName] = useState(profile.displayName);
+  const [bio, setBio] = useState(profile.bio);
+  const [selected, setSelected] = useState<string[]>(profile.specialties);
+  const [priceText, setPriceText] = useState(String(Math.round(profile.pricePerSessionPaise / 100)));
+
+  // Option catalog: the coach's own specialties plus the standard set. There is
+  // no catalog query in the contract yet, so the standard set stays local.
+  const options = useMemo(() => {
+    const set = new Set<string>([...profile.specialties, ...MOCK_SPECIALTIES]);
+    return Array.from(set);
+  }, [profile.specialties]);
 
   const priceRupees = Number(priceText.replace(/[^0-9]/g, "")) || 0;
   const takeHomePaise = Math.round(priceRupees * 100 * COACH_TAKE_RATE);
@@ -44,12 +95,9 @@ export function CoachProfileEditorScreen({ navigation }: CoachScreenProps<"Coach
   };
 
   return (
-    <Screen
-      scroll
-      footer={<Button label="Save profile" onPress={() => show("Saved")} />}
-    >
+    <Screen scroll footer={<Button label="Save profile" onPress={onSaved} />}>
       <View style={styles.topBar}>
-        <IconButton icon={CaretLeft} accessibilityLabel="Back" onPress={() => navigation.goBack()} />
+        <IconButton icon={CaretLeft} accessibilityLabel="Back" onPress={onBack} />
       </View>
 
       <Text preset="title">Edit profile</Text>
@@ -84,7 +132,7 @@ export function CoachProfileEditorScreen({ navigation }: CoachScreenProps<"Coach
         SPECIALTIES
       </Text>
       <View style={styles.chips}>
-        {MOCK_SPECIALTIES.map((s) => (
+        {options.map((s) => (
           <Chip key={s} label={s} selected={selected.includes(s)} onPress={() => toggle(s)} />
         ))}
       </View>
@@ -120,27 +168,33 @@ export function CoachProfileEditorScreen({ navigation }: CoachScreenProps<"Coach
         CERTIFICATIONS
       </Text>
       <Card padded>
-        {MOCK_CERTS.map((c, i) => (
-          <View key={c.id}>
-            {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
-            <View style={styles.certRow}>
-              <View style={{ flex: 1 }}>
-                <Text preset="bodyMedium">{c.title}</Text>
-                <Text preset="body" color="secondary">
-                  {c.issuer}
-                </Text>
+        {profile.certifications.length === 0 ? (
+          <Text preset="body" color="secondary">
+            No certifications on file yet.
+          </Text>
+        ) : (
+          profile.certifications.map((c, i) => (
+            <View key={`${c.title}-${c.issuer}`}>
+              {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
+              <View style={styles.certRow}>
+                <View style={{ flex: 1 }}>
+                  <Text preset="bodyMedium">{c.title}</Text>
+                  <Text preset="body" color="secondary">
+                    {c.issuer}
+                  </Text>
+                </View>
+                <CertStatusChip status={c.status} />
               </View>
-              <CertStatusChip status={c.status} />
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </Card>
     </Screen>
   );
 }
 
-function CertStatusChip({ status }: { status: CertStatus }) {
-  if (status === "VERIFIED") {
+function CertStatusChip({ status }: { status: CertificationStatus }) {
+  if (status === CertificationStatus.Verified) {
     return (
       <View style={styles.statusChip}>
         <CheckCircle size={16} weight="fill" color={colors.accent.primary} />
@@ -150,7 +204,7 @@ function CertStatusChip({ status }: { status: CertStatus }) {
       </View>
     );
   }
-  if (status === "REJECTED") {
+  if (status === CertificationStatus.Rejected) {
     return (
       <Text preset="label" style={{ color: colors.serious.danger }}>
         REJECTED

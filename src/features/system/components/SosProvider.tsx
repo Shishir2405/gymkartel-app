@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Phone, UserFocus, WarningOctagon, X } from "phosphor-react-native";
 import { colors, spacing, radius } from "../../../ui";
-import { Text } from "../../../ui";
+import { Text, useToast } from "../../../ui";
+import { useTriggerSosMutation, SosKind } from "../../../graphql/generated/graphql";
+import { toUiError } from "../../../lib/errors";
 
 /**
  * SOS is a SERIOUS moment — it drops the Soft-Dark Luxury theme entirely for a
@@ -29,9 +31,21 @@ const SosContext = createContext<SosApi>({ open: () => {}, close: () => {}, visi
 
 export function SosProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
+  const { show } = useToast();
+  const [, triggerSos] = useTriggerSosMutation();
   const open = useCallback(() => setVisible(true), []);
   const close = useCallback(() => setVisible(false), []);
   const api = useMemo(() => ({ open, close, visible }), [open, close, visible]);
+
+  const fireSos = useCallback(
+    async (kind: SosKind, okMessage: string) => {
+      const result = await triggerSos({ input: { kind } });
+      const uiError = toUiError(result.error);
+      show(uiError ? uiError.message : okMessage);
+      setVisible(false);
+    },
+    [triggerSos, show],
+  );
 
   return (
     <SosContext.Provider value={api}>
@@ -55,23 +69,22 @@ export function SosProvider({ children }: { children: React.ReactNode }) {
               title="Call emergency services"
               body="Dials the local emergency number."
               danger
-              onPress={() => void Linking.openURL("tel:112")}
+              onPress={() => {
+                void Linking.openURL("tel:112");
+                void fireSos(SosKind.CallEmergency, "Emergency services dialled");
+              }}
             />
             <SosAction
               icon={<UserFocus size={26} color={colors.serious.text} />}
               title="Alert trusted contact"
               body="Sends your live location to the contact you saved."
-              onPress={() => {
-                // Wired to the trusted-contact alert flow.
-              }}
+              onPress={() => void fireSos(SosKind.AlertTrustedContact, "Your trusted contact has been alerted")}
             />
             <SosAction
               icon={<WarningOctagon size={26} color={colors.serious.text} />}
               title="Report an incident"
               body="Opens a plain form. We review every report."
-              onPress={() => {
-                // Opens the incident report sheet.
-              }}
+              onPress={() => void fireSos(SosKind.ReportIncident, "Report sent to our safety team")}
             />
           </View>
         </SafeAreaView>

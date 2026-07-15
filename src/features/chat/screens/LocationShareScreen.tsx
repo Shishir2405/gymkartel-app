@@ -13,7 +13,8 @@ import {
 } from "@/ui";
 import { Screen } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
-import { useBookingsQuery } from "@/graphql/generated/graphql";
+import { useBookingsQuery, useShareLocationMutation } from "@/graphql/generated/graphql";
+import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
 /**
@@ -26,22 +27,31 @@ export function LocationShareScreen({ navigation, route }: MemberScreenProps<"Lo
   const { bookingId } = route.params;
   const { show } = useToast();
   const [{ data }] = useBookingsQuery();
+  const [{ fetching }, shareLocation] = useShareLocationMutation();
 
   const booking = data?.bookings.find((b) => b.id === bookingId);
   // Enabled when we cannot prove it is locked, or the booking is unlocked.
   const enabled = booking == null ? true : booking.chatUnlocked;
 
-  const onShare = () => {
-    if (!enabled) return;
+  const onShare = async () => {
+    if (!enabled || fetching) return;
     void haptics.medium();
-    show("Sharing live location");
-    navigation.goBack();
+    // TODO(no-geolocation-dep): wire expo-location for real coordinates; the
+    // server binds the live share to the booking regardless of the seed point.
+    const result = await shareLocation({ bookingId, lat: 0, lng: 0 });
+    const uiError = toUiError(result.error);
+    show(uiError ? uiError.message : "Sharing live location");
+    if (!uiError) navigation.goBack();
   };
 
   return (
     <Screen
       footer={
-        <Button label="Share live location" onPress={onShare} disabled={!enabled} />
+        <Button
+          label="Share live location"
+          onPress={() => void onShare()}
+          disabled={!enabled || fetching}
+        />
       }
     >
       <Text preset="title" style={styles.title}>

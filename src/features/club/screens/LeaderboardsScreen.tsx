@@ -9,60 +9,103 @@ import {
   Divider,
   Avatar,
   Icon,
+  Skeleton,
   StatePlaceholder,
   colors,
   spacing,
   radius,
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
+import { toUiError } from "@/lib/errors";
 import {
-  leaderboardFor,
-  SEASON_DAYS_LEFT,
-  type LeaderboardScope,
-  type LeaderboardEntry,
-} from "@/features/club/data/mock";
+  useLeaderboardQuery,
+  LeaderboardSegment,
+  type LeaderboardEntryRowFragment,
+} from "@/graphql/generated/graphql";
 
-const SCOPES: readonly LeaderboardScope[] = ["ZONE", "STATE", "INDIA"];
+const SCOPES: readonly LeaderboardSegment[] = [
+  LeaderboardSegment.Zone,
+  LeaderboardSegment.State,
+  LeaderboardSegment.India,
+];
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+] as const;
+
+/** "2026-07" -> "July 2026". Falls back to the raw key if it can't parse. */
+function seasonLabel(season: string): string {
+  const parts = season.split("-");
+  const year = parts[0];
+  const monthIdx = Number(parts[1]) - 1;
+  const month = MONTHS[monthIdx];
+  return month && year ? `${month} ${year}` : season;
+}
 
 /**
  * Leaderboards. A custom segmented control (selected pill orange) switches
- * scope. The top three sit on a podium where only #1 carries the gold stroke.
- * A ranked list follows, and the viewer's own row is pinned to the bottom over
- * the list with an orange hairline so it is always visible.
+ * scope, re-querying `leaderboard` per segment. The top three sit on a podium
+ * where only #1 carries the gold stroke. A ranked list follows, and the
+ * viewer's own row — from the server's sticky `self` (or an `isSelf` page row)
+ * — is pinned to the bottom with an orange hairline so it is always visible.
  */
 export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
-  const [scope, setScope] = useState<LeaderboardScope>("ZONE");
-  const board = leaderboardFor(scope);
+  const [scope, setScope] = useState<LeaderboardSegment>(LeaderboardSegment.Zone);
+  const [{ data, fetching, error }, refetch] = useLeaderboardQuery({
+    variables: { segment: scope },
+  });
+  const uiError = toUiError(error);
 
-  const podium = board.filter((e) => !e.isViewer && e.rank <= 3);
-  const rest = board.filter((e) => !e.isViewer && e.rank > 3);
-  const viewer = board.find((e) => e.isViewer) ?? null;
+  const board = data?.leaderboard ?? null;
+  const page = board?.page ?? [];
+  const podium = page.filter((e) => e.position <= 3);
+  const rest = page.filter((e) => e.position > 3);
+  const selfEntry = board?.self ?? page.find((e) => e.isSelf) ?? null;
 
-  return (
-    <Screen scroll={false} testID="leaderboards">
-      <View style={styles.header}>
-        <Text preset="title">Leaderboards</Text>
+  const header = (
+    <View style={styles.header}>
+      <Text preset="title">Leaderboards</Text>
+      {board ? (
         <View style={styles.seasonChip}>
           <Icon icon={Timer} size={14} color={colors.text.secondary} />
           <Text preset="label" color="secondary" style={styles.seasonText}>
-            Season ends in {SEASON_DAYS_LEFT} days
+            {seasonLabel(board.season)} season
           </Text>
         </View>
-      </View>
+      ) : null}
+    </View>
+  );
 
-      {/* Segmented control */}
-      <View style={styles.segments}>
-        {SCOPES.map((s) => (
-          <Chip
-            key={s}
-            label={s}
-            selected={scope === s}
-            onPress={() => setScope(s)}
-          />
-        ))}
-      </View>
+  const segments = (
+    <View style={styles.segments}>
+      {SCOPES.map((s) => (
+        <Chip key={s} label={s} selected={scope === s} onPress={() => setScope(s)} />
+      ))}
+    </View>
+  );
 
-      {board.length === 0 ? (
+  return (
+    <Screen scroll={false} testID="leaderboards">
+      {header}
+      {segments}
+
+      {uiError ? (
+        <StatePlaceholder
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+          icon={<Icon icon={Trophy} size={40} color={colors.text.secondary} />}
+          title="We could not load the board"
+          body={uiError.message}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
+      ) : fetching && !board ? (
+        <View style={styles.flex}>
+          <Skeleton height={140} radius={radius.card} style={{ marginBottom: spacing.md }} />
+          <Skeleton height={72} radius={radius.card} style={{ marginBottom: spacing.md }} />
+          <Skeleton height={72} radius={radius.card} />
+        </View>
+      ) : page.length === 0 ? (
         <StatePlaceholder
           variant="empty"
           icon={<Icon icon={Trophy} size={40} color={colors.text.secondary} />}
@@ -80,7 +123,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
             {podium.length > 0 ? (
               <View style={styles.podium}>
                 {podium.map((entry) => (
-                  <PodiumPillar key={entry.id} entry={entry} />
+                  <PodiumPillar key={entry.userId} entry={entry} />
                 ))}
               </View>
             ) : null}
@@ -88,7 +131,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
             {/* Ranked list */}
             <Card padded={false} style={styles.listCard}>
               {rest.map((entry, index) => (
-                <View key={entry.id}>
+                <View key={entry.userId}>
                   {index > 0 ? <Divider /> : null}
                   <RankRow entry={entry} />
                 </View>
@@ -97,9 +140,9 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
           </ScrollView>
 
           {/* Sticky viewer row */}
-          {viewer ? (
+          {selfEntry ? (
             <View style={styles.sticky}>
-              <RankRow entry={viewer} emphasized />
+              <RankRow entry={selfEntry} emphasized />
             </View>
           ) : null}
         </>
@@ -108,8 +151,8 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
   );
 }
 
-function PodiumPillar({ entry }: { entry: LeaderboardEntry }) {
-  const isFirst = entry.rank === 1;
+function PodiumPillar({ entry }: { entry: LeaderboardEntryRowFragment }) {
+  const isFirst = entry.position === 1;
   return (
     <View style={styles.pillar}>
       <View
@@ -118,20 +161,20 @@ function PodiumPillar({ entry }: { entry: LeaderboardEntry }) {
           isFirst ? styles.pillarGold : styles.pillarNeutral,
         ]}
       >
-        <Avatar name={entry.name} size={isFirst ? 60 : 48} />
+        <Avatar name={entry.displayName} size={isFirst ? 60 : 48} />
       </View>
       <Text
         preset="label"
         color={isFirst ? "gold" : "secondary"}
         style={styles.pillarRank}
       >
-        #{entry.rank}
+        #{entry.position}
       </Text>
       <Text preset="body" numberOfLines={1} style={styles.pillarName}>
-        {entry.name}
+        {entry.displayName}
       </Text>
       <Text preset="label" color="secondary">
-        {entry.checkIns}
+        {entry.totalCheckIns}
       </Text>
     </View>
   );
@@ -141,7 +184,7 @@ function RankRow({
   entry,
   emphasized = false,
 }: {
-  entry: LeaderboardEntry;
+  entry: LeaderboardEntryRowFragment;
   emphasized?: boolean;
 }) {
   return (
@@ -151,19 +194,19 @@ function RankRow({
         color={emphasized ? "accent" : "secondary"}
         style={styles.rankNumber}
       >
-        {entry.rank}
+        {entry.position}
       </Text>
-      <Avatar name={entry.name} size={36} />
+      <Avatar name={entry.displayName} size={36} />
       <View style={styles.rankBody}>
         <Text preset="bodyMedium" numberOfLines={1}>
-          {entry.name}
+          {entry.isSelf ? "You" : entry.displayName}
         </Text>
         <Text preset="body" color="secondary">
-          {entry.zone}
+          {entry.streak} day streak
         </Text>
       </View>
       <Text preset="bodyMedium" color="secondary">
-        {entry.checkIns}
+        {entry.totalCheckIns}
       </Text>
     </View>
   );

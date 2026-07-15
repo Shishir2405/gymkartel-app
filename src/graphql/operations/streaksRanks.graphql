@@ -1,0 +1,25 @@
+query RankCard {
+  rankCard {
+    current
+    label
+    next
+    weeksToNext
+    streakWeeks
+    thresholds {
+      key
+      label
+      minWeeks
+    }
+  }
+}
+
+query StreakCalendar {
+  streakCalendar {
+    weeks
+    alive
+    daysThisWindow
+    windowDaysLeft
+    bonusDaysEarned
+    days
+  }
+}

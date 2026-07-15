@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import {
-  Barbell,
   ChartLineUp,
   ClockCounterClockwise,
   Image as ImageIcon,
@@ -24,21 +23,20 @@ import {
   radius,
 } from "@/ui";
 import type { MemberTabScreenProps } from "@/app/navigation/types";
-import { useViewerQuery } from "@/graphql/generated/graphql";
+import { useViewerQuery, useLedgerTodayQuery, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
 import { MiniBarChart } from "@/features/ledger/components/MiniBarChart";
 import { MOCK_BENCH_1RM } from "@/features/ledger/data/mockLedger";
-import { useLoggedEntries, isToday } from "@/features/ledger/hooks/useLoggedEntries";
 
 /**
- * The Ledger "Today". Two lives: without a Pass the record is sealed — real
- * charts render behind an expo-blur frost with a single way in. With a Pass it
- * opens to today's logged sets, a way to log more, and links into the deeper
- * record (history, progress, photos).
+ * The Ledger "Today". Two lives: without a Pass the record is sealed — a
+ * believable Ledger renders behind an expo-blur frost with a single way in.
+ * With a Pass it opens to today's logged sets (live from `ledgerToday`), a way
+ * to log more, and links into the deeper record (history, progress, photos).
  */
 export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
   const [viewer] = useViewerQuery();
-  const entries = useLoggedEntries((s) => s.entries);
-  const todays = entries.filter((e) => isToday(e.loggedAt));
+  const [today] = useLedgerTodayQuery();
+  const todays = today.data?.ledgerToday ?? [];
 
   const hasPass = viewer.data?.viewer?.activePass?.status === "ACTIVE";
   const loading = viewer.fetching && !viewer.data;
@@ -70,7 +68,12 @@ export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
         </Text>
 
         <SectionHeader title="Logged today" />
-        {todays.length === 0 ? (
+        {today.fetching && todays.length === 0 ? (
+          <Card padded>
+            <Skeleton height={16} width="60%" />
+            <Skeleton height={16} width="40%" style={{ marginTop: spacing.md }} />
+          </Card>
+        ) : todays.length === 0 ? (
           <Card padded>
             <Text preset="body" color="secondary">
               Nothing logged yet. First entry writes the record.
@@ -78,27 +81,10 @@ export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
           </Card>
         ) : (
           <Card padded>
-            {todays.map((e, i) => (
-              <View key={e.id}>
+            {todays.map((entry, i) => (
+              <View key={entry.id}>
                 {i > 0 ? <Divider style={{ marginVertical: spacing.md }} /> : null}
-                <View style={styles.logRow}>
-                  <View style={styles.logMeta}>
-                    <Text preset="bodyMedium" numberOfLines={1}>
-                      {e.exercise ? titleCase(e.exercise) : e.raw}
-                    </Text>
-                    <Text preset="body" color="secondary">
-                      {setSummary(e.sets, e.reps)}
-                    </Text>
-                  </View>
-                  {e.weightKg != null ? (
-                    <View style={styles.weightWrap}>
-                      <Text preset="displayMedium">{e.weightKg}</Text>
-                      <Text preset="label" color="secondary">
-                        kg
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
+                <LedgerRow entry={entry} />
               </View>
             ))}
           </Card>
@@ -137,6 +123,43 @@ export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
   );
 }
 
+/** One logged set. Amber "?" marks a chip the parser was unsure of. */
+export function LedgerRow({ entry }: { entry: LedgerEntryRowFragment }) {
+  const { chip } = entry;
+  return (
+    <View style={styles.logRow}>
+      <View style={styles.logMeta}>
+        <View style={styles.nameLine}>
+          <Text preset="bodyMedium" numberOfLines={1} style={styles.name}>
+            {chip.exercise ? titleCase(chip.exercise) : chip.raw}
+          </Text>
+          {chip.uncertain ? (
+            <Text preset="label" style={styles.uncertainMark}>
+              ?
+            </Text>
+          ) : null}
+          {entry.isPR ? (
+            <Text preset="label" color="accent" style={styles.prMark}>
+              PR
+            </Text>
+          ) : null}
+        </View>
+        <Text preset="body" color="secondary">
+          {setSummary(chip.sets, chip.reps)}
+        </Text>
+      </View>
+      {chip.weightKg != null ? (
+        <View style={styles.weightWrap}>
+          <Text preset="displayMedium">{chip.weightKg}</Text>
+          <Text preset="label" color="secondary">
+            kg
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function LinkRow({
   icon,
   label,
@@ -159,7 +182,8 @@ function LinkRow({
 
 /**
  * The sealed state. A believable Ledger renders underneath, then a frost blur
- * closes over it so the numbers read as "there, but not yours yet".
+ * closes over it so the numbers read as "there, but not yours yet". The figures
+ * here are a deliberate teaser, not the viewer's record.
  */
 function LockedLedger({ onGetPass }: { onGetPass: () => void }) {
   return (
@@ -241,6 +265,10 @@ const styles = StyleSheet.create({
   heading: { marginBottom: spacing.sm },
   logRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   logMeta: { flex: 1, paddingRight: spacing.md },
+  nameLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  name: { flexShrink: 1 },
+  uncertainMark: { color: colors.support.warning },
+  prMark: {},
   weightWrap: { alignItems: "flex-end" },
   linkRow: { paddingHorizontal: spacing.lg, paddingVertical: spacing.lg },
   linkLabel: { flex: 1, marginLeft: spacing.md },

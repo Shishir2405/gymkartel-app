@@ -7,6 +7,7 @@ import {
   Card,
   Divider,
   Avatar,
+  Skeleton,
   StatePlaceholder,
   PressableRow,
   colors,
@@ -14,21 +15,25 @@ import {
   radius,
 } from "@/ui";
 import type { CoachTabScreenProps } from "@/app/navigation/types";
-import { formatDate } from "@/lib/format";
-import { MOCK_CLIENTS, type CoachClient } from "@/features/coachside/lib/mock";
+import { toUiError } from "@/lib/errors";
+import { useCoachClientsQuery, type CoachClientRowFragment } from "@/graphql/generated/graphql";
 
 /**
- * The coach's client roster. A search field filters by name, each row opens the
- * client detail. Empty state covers both "no clients yet" and "no search match".
+ * The coach's client roster, live from `coachClients`. A search field filters by
+ * name, each row opens the client detail. Empty state covers both "no clients
+ * yet" and "no search match". Loading / error states preserved.
  */
 export function CoachClientsScreen({ navigation }: CoachTabScreenProps<"CoachClients">) {
   const [query, setQuery] = useState("");
+  const [{ data, fetching, error }, refetch] = useCoachClientsQuery();
+  const uiError = toUiError(error);
 
   const clients = useMemo(() => {
+    const all = data?.coachClients ?? [];
     const q = query.trim().toLowerCase();
-    if (!q) return MOCK_CLIENTS;
-    return MOCK_CLIENTS.filter((c) => c.name.toLowerCase().includes(q));
-  }, [query]);
+    if (!q) return all;
+    return all.filter((c) => c.name.toLowerCase().includes(q));
+  }, [query, data?.coachClients]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
@@ -51,7 +56,22 @@ export function CoachClientsScreen({ navigation }: CoachTabScreenProps<"CoachCli
         </View>
       </View>
 
-      {clients.length === 0 ? (
+      {fetching && !data ? (
+        <View style={styles.content}>
+          <Skeleton height={64} radius={radius.card} style={{ marginBottom: spacing.md }} />
+          <Skeleton height={64} radius={radius.card} style={{ marginBottom: spacing.md }} />
+          <Skeleton height={64} radius={radius.card} />
+        </View>
+      ) : uiError ? (
+        <StatePlaceholder
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+          icon={<UsersThree size={40} color={colors.text.disabled} />}
+          title="We could not load your clients"
+          body={uiError.message}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
+      ) : clients.length === 0 ? (
         <StatePlaceholder
           variant="empty"
           icon={<UsersThree size={40} color={colors.text.disabled} />}
@@ -81,20 +101,15 @@ export function CoachClientsScreen({ navigation }: CoachTabScreenProps<"CoachCli
   );
 }
 
-function ClientRow({ client, onPress }: { client: CoachClient; onPress: () => void }) {
+function ClientRow({ client, onPress }: { client: CoachClientRowFragment; onPress: () => void }) {
   return (
     <PressableRow onPress={onPress} style={styles.clientRow}>
-      <Avatar name={client.name} size={44} />
+      <Avatar uri={client.avatarUrl ?? undefined} name={client.name} size={44} />
       <View style={{ flex: 1, marginLeft: spacing.md }}>
         <Text preset="bodyMedium">{client.name}</Text>
         <Text preset="body" color="secondary" numberOfLines={1}>
-          {client.goal} · {client.sessionsCompleted} sessions
+          {client.sessions} {client.sessions === 1 ? "session" : "sessions"}
         </Text>
-        {client.nextSessionIso ? (
-          <Text preset="label" color="secondary" style={{ marginTop: 2 }}>
-            NEXT {formatDate(client.nextSessionIso).toUpperCase()}
-          </Text>
-        ) : null}
       </View>
       <CaretRight size={18} color={colors.text.secondary} />
     </PressableRow>

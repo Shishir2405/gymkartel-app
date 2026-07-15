@@ -1,0 +1,34 @@
+fragment IncidentRow on Incident {
+  id
+  kind
+  note
+  status
+  createdAt
+  location {
+    lat
+    lng
+  }
+}
+
+query Incidents {
+  incidents {
+    ...IncidentRow
+  }
+}
+
+query TrustedContact {
+  trustedContact {
+    name
+    phone
+  }
+}
+
+mutation TriggerSos($input: TriggerSosInput!) {
+  triggerSos(input: $input) {
+    ...IncidentRow
+  }
+}
+
+mutation SetTrustedContact($input: SetTrustedContactInput!) {
+  setTrustedContact(input: $input)
+}

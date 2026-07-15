@@ -23,8 +23,7 @@ import {
   type PhosphorIcon,
 } from "@/ui";
 import type { MemberTabScreenProps } from "@/app/navigation/types";
-import { useViewerQuery } from "@/graphql/generated/graphql";
-import { RANK_LADDER, MOCK_CHECK_INS, rankProgress } from "@/features/club/data/mock";
+import { useViewerQuery, useRankCardQuery } from "@/graphql/generated/graphql";
 
 type ClubDestination =
   | "StreakCalendar"
@@ -50,19 +49,34 @@ const ROWS: readonly ClubRow[] = [
 
 /**
  * Club home. The rank card is the hero: current rank in Barlow, a progress bar
- * toward the next rank, and the plain remaining-check-ins line. Streak comes
- * from the viewer query; rank and ladder are local mock data. Below the hero,
- * quiet navigation rows lead to the five club destinations, and the full rank
- * ladder is listed plainly at the bottom.
+ * toward the next rank, and the plain weeks-to-next line — all sourced from the
+ * `rankCard` query with its public `thresholds` ladder. Streak comes from the
+ * viewer query. Below the hero, quiet navigation rows lead to the five club
+ * destinations, and the full rank ladder is listed plainly at the bottom.
  */
 export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
   const [viewer] = useViewerQuery();
-  const data = viewer.data?.viewer ?? null;
-  const streak = data?.streak.current ?? 0;
-  const progress = rankProgress(MOCK_CHECK_INS);
+  const [rank] = useRankCardQuery();
 
-  const loading = viewer.fetching && !data;
-  const errored = Boolean(viewer.error) && !data;
+  const streak = viewer.data?.viewer?.streak.current ?? 0;
+  const card = rank.data?.rankCard ?? null;
+
+  const loading = rank.fetching && !card;
+  const errored = Boolean(rank.error) && !card;
+
+  const nextLabel = card?.next
+    ? (card.thresholds.find((t) => t.key === card.next)?.label ?? card.next)
+    : null;
+
+  const fraction = (() => {
+    if (!card) return 0;
+    const currentMin = card.thresholds.find((t) => t.key === card.current)?.minWeeks ?? 0;
+    const nextMin = card.next
+      ? card.thresholds.find((t) => t.key === card.next)?.minWeeks ?? null
+      : null;
+    if (nextMin == null || nextMin <= currentMin) return 1;
+    return Math.max(0, Math.min(1, (card.streakWeeks - currentMin) / (nextMin - currentMin)));
+  })();
 
   return (
     <Screen scroll testID="club-home">
@@ -80,22 +94,22 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
             body="Check your connection and try again."
           />
         </View>
-      ) : (
+      ) : card ? (
         <Card padded style={styles.hero}>
           <Text preset="label" color="secondary">
             YOUR RANK
           </Text>
           <Text preset="displayLarge" style={styles.rankName}>
-            {progress.current.name}
+            {card.label}
           </Text>
 
           <View style={styles.progressWrap}>
-            <ProgressBar value={progress.fraction} />
+            <ProgressBar value={fraction} />
           </View>
 
           <Text preset="body" color="secondary" style={styles.progressLine}>
-            {progress.next
-              ? `${progress.remaining} check-ins to ${progress.next.name}`
+            {nextLabel && card.weeksToNext != null
+              ? `${card.weeksToNext} ${card.weeksToNext === 1 ? "week" : "weeks"} to ${nextLabel}`
               : "Top rank held. Keep the streak alive."}
           </Text>
 
@@ -108,7 +122,7 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
             </Text>
           </View>
         </Card>
-      )}
+      ) : null}
 
       {/* Navigation rows */}
       <Card padded={false} style={styles.rows}>
@@ -134,33 +148,34 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
         ))}
       </Card>
 
-      {/* Rank ladder, stated plainly */}
-      <Text preset="label" color="secondary" style={styles.ladderHeading}>
-        RANK LADDER
-      </Text>
-      <Card padded>
-        {RANK_LADDER.map((rank, index) => {
-          const isCurrent = rank.name === progress.current.name;
-          return (
-            <View key={rank.name}>
-              {index > 0 ? <Divider style={styles.ladderDivider} /> : null}
-              <View style={styles.ladderRow}>
-                <Text
-                  preset="bodyMedium"
-                  color={isCurrent ? "accent" : "primary"}
-                >
-                  {rank.name}
-                </Text>
-                <Text preset="body" color="secondary">
-                  {rank.checkInsRequired === 0
-                    ? "Entry"
-                    : `${rank.checkInsRequired} check-ins`}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
-      </Card>
+      {/* Rank ladder, stated plainly from the public thresholds */}
+      {card ? (
+        <>
+          <Text preset="label" color="secondary" style={styles.ladderHeading}>
+            RANK LADDER
+          </Text>
+          <Card padded>
+            {card.thresholds.map((threshold, index) => {
+              const isCurrent = threshold.key === card.current;
+              return (
+                <View key={threshold.key}>
+                  {index > 0 ? <Divider style={styles.ladderDivider} /> : null}
+                  <View style={styles.ladderRow}>
+                    <Text preset="bodyMedium" color={isCurrent ? "accent" : "primary"}>
+                      {threshold.label}
+                    </Text>
+                    <Text preset="body" color="secondary">
+                      {threshold.minWeeks === 0
+                        ? "Entry"
+                        : `${threshold.minWeeks} ${threshold.minWeeks === 1 ? "week" : "weeks"}`}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </Card>
+        </>
+      ) : null}
     </Screen>
   );
 }

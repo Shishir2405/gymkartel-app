@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { ChartLineUp } from "phosphor-react-native";
 import {
@@ -14,34 +14,78 @@ import {
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { MiniBarChart } from "@/features/ledger/components/MiniBarChart";
-import {
-  MOCK_BENCH_1RM,
-  MOCK_BODYWEIGHT,
-  type MetricSeries,
-} from "@/features/ledger/data/mockLedger";
+import { toUiError } from "@/lib/errors";
+import { useLedgerHistoryQuery, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
+
+interface MetricSeries {
+  label: string;
+  unit: string;
+  points: { date: string; value: number }[];
+}
+
+/** ISO -> "15 Jul" for tight axis labels. */
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
 
 /**
- * Progress at a glance. No chart library — bars are plain Views scaled by value,
- * hairline axis, and the orange is spent only on the latest bar of each metric.
+ * Turn the ledger history into per-exercise weight-progression series. Only
+ * weighted sets count, oldest -> newest, and a trend needs at least two points.
+ */
+function seriesFromHistory(entries: readonly LedgerEntryRowFragment[]): MetricSeries[] {
+  const map = new Map<string, LedgerEntryRowFragment[]>();
+  for (const entry of entries) {
+    if (entry.chip.weightKg == null || !entry.chip.exercise) continue;
+    const key = titleCase(entry.chip.exercise);
+    const list = map.get(key) ?? [];
+    list.push(entry);
+    map.set(key, list);
+  }
+  const out: MetricSeries[] = [];
+  for (const [label, list] of map.entries()) {
+    const sorted = [...list].sort((a, b) => a.loggedAt.localeCompare(b.loggedAt));
+    if (sorted.length < 2) continue;
+    out.push({
+      label,
+      unit: "kg",
+      points: sorted.map((e) => ({ date: shortDate(e.loggedAt), value: e.chip.weightKg ?? 0 })),
+    });
+  }
+  return out;
+}
+
+/**
+ * Progress at a glance, drawn from `ledgerHistory`. No chart library — bars are
+ * plain Views scaled by value, hairline axis, and the orange is spent only on
+ * the latest bar of each metric. Loading / empty / error states preserved.
  */
 export function ProgressChartsScreen(_props: MemberScreenProps<"ProgressCharts">) {
-  const [loading, setLoading] = useState(true);
-  const [series, setSeries] = useState<MetricSeries[]>([]);
+  const [{ data, fetching, error }, refetch] = useLedgerHistoryQuery();
+  const uiError = toUiError(error);
+  const series = useMemo(() => seriesFromHistory(data?.ledgerHistory ?? []), [data?.ledgerHistory]);
 
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setSeries([MOCK_BENCH_1RM, MOCK_BODYWEIGHT]);
-      setLoading(false);
-    }, 450);
-    return () => clearTimeout(id);
-  }, []);
-
-  if (loading) {
+  if (fetching && !data) {
     return (
       <Screen scroll>
         <Text preset="title">Progress</Text>
         <Skeleton height={220} radius={radius.card} style={{ marginTop: spacing.lg }} />
         <Skeleton height={220} radius={radius.card} style={{ marginTop: spacing.md }} />
+      </Screen>
+    );
+  }
+
+  if (uiError) {
+    return (
+      <Screen>
+        <StatePlaceholder
+          icon={<ChartLineUp size={40} color={colors.text.secondary} />}
+          variant={uiError.code === "OFFLINE" ? "offline" : "error"}
+          title="We could not load your progress"
+          body={uiError.message}
+          actionLabel="Try again"
+          onAction={() => refetch({ requestPolicy: "network-only" })}
+        />
       </Screen>
     );
   }
@@ -108,6 +152,13 @@ export function ProgressChartsScreen(_props: MemberScreenProps<"ProgressCharts">
       })}
     </Screen>
   );
+}
+
+function titleCase(s: string): string {
+  return s
+    .split(" ")
+    .map((w) => (w.length > 0 ? (w[0] ?? "").toUpperCase() + w.slice(1) : w))
+    .join(" ");
 }
 
 const styles = StyleSheet.create({

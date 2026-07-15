@@ -1,0 +1,57 @@
+fragment ChatMessageRow on ChatMessage {
+  id
+  bookingId
+  from
+  text
+  masked
+  sentAt
+}
+
+fragment ChatThreadRow on ChatThread {
+  bookingId
+  chatUnlocked
+  coach {
+    id
+    displayName
+    verified
+    badge
+  }
+  gym {
+    id
+    name
+    tier
+  }
+  lastMessage {
+    ...ChatMessageRow
+  }
+}
+
+query ChatInbox {
+  chatInbox {
+    ...ChatThreadRow
+  }
+}
+
+query ChatThread($bookingId: ID!) {
+  chatThread(bookingId: $bookingId) {
+    ...ChatMessageRow
+  }
+}
+
+mutation SendMessage($bookingId: ID!, $text: String!) {
+  sendMessage(bookingId: $bookingId, text: $text) {
+    ...ChatMessageRow
+  }
+}
+
+mutation ShareLocation($bookingId: ID!, $lat: Float!, $lng: Float!) {
+  shareLocation(bookingId: $bookingId, lat: $lat, lng: $lng) {
+    expiresAt
+  }
+}
+
+subscription MessageReceived($bookingId: ID!) {
+  messageReceived(bookingId: $bookingId) {
+    ...ChatMessageRow
+  }
+}

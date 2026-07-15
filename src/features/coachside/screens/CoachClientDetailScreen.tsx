@@ -9,6 +9,7 @@ import {
   Button,
   Avatar,
   IconButton,
+  Skeleton,
   StatePlaceholder,
   useToast,
   colors,
@@ -17,7 +18,8 @@ import {
 } from "@/ui";
 import type { CoachScreenProps } from "@/app/navigation/types";
 import { formatDate } from "@/lib/format";
-import { MOCK_CLIENTS } from "@/features/coachside/lib/mock";
+import { toUiError } from "@/lib/errors";
+import { useCoachClientQuery } from "@/graphql/generated/graphql";
 
 type Section = "LOG" | "HISTORY" | "PHOTOS" | "NOTES";
 const SECTIONS: { key: Section; label: string }[] = [
@@ -34,18 +36,37 @@ const HISTORY = [
 ];
 
 /**
- * Client detail. Four sections: log a session, past history, consented photos,
- * and coach-only private notes saved locally. The photos section always carries
- * the consent line so it is clear these are shown with the client's permission.
+ * Client detail. Identity (name, session count) is live from `coachClient`.
+ * Four sections follow: log a session, past history, consented photos, and
+ * coach-only private notes saved locally — these coaching tools have no server
+ * surface yet, so they stay on-device. The photos section always carries the
+ * consent line so it is clear these are shown with the client's permission.
  */
 export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<"CoachClientDetail">) {
   const { clientId } = route.params;
   const { show } = useToast();
-  const client = MOCK_CLIENTS.find((c) => c.id === clientId);
+  const [{ data, fetching, error }] = useCoachClientQuery({ variables: { id: clientId } });
+  const client = data?.coachClient ?? null;
+  const uiError = toUiError(error);
   const [section, setSection] = useState<Section>("LOG");
 
   const [logNote, setLogNote] = useState("");
   const [privateNote, setPrivateNote] = useState("");
+
+  if (fetching && !client) {
+    return (
+      <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+        <View style={styles.topBar}>
+          <IconButton icon={CaretLeft} accessibilityLabel="Back" onPress={() => navigation.goBack()} />
+        </View>
+        <View style={styles.content}>
+          <Skeleton height={64} radius={radius.card} />
+          <Skeleton height={44} radius={radius.card} style={{ marginTop: spacing.xl }} />
+          <Skeleton height={160} radius={radius.card} style={{ marginTop: spacing.lg }} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!client) {
     return (
@@ -54,9 +75,9 @@ export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<
           <IconButton icon={CaretLeft} accessibilityLabel="Back" onPress={() => navigation.goBack()} />
         </View>
         <StatePlaceholder
-          variant="error"
+          variant={uiError?.code === "OFFLINE" ? "offline" : "error"}
           title="We could not find this client"
-          body="They may have been removed from your roster."
+          body={uiError?.message ?? "They may have been removed from your roster."}
           actionLabel="Go back"
           onAction={() => navigation.goBack()}
         />
@@ -73,14 +94,11 @@ export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Identity */}
         <View style={styles.identity}>
-          <Avatar name={client.name} size={64} />
+          <Avatar uri={client.avatarUrl ?? undefined} name={client.name} size={64} />
           <View style={{ marginLeft: spacing.md, flex: 1 }}>
             <Text preset="title">{client.name}</Text>
             <Text preset="body" color="secondary">
-              {client.goal} · {client.sessionsCompleted} sessions
-            </Text>
-            <Text preset="body" color="secondary">
-              {client.gym}
+              {client.sessions} {client.sessions === 1 ? "session" : "sessions"} together
             </Text>
           </View>
         </View>
