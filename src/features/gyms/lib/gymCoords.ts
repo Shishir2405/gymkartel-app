@@ -1,20 +1,24 @@
 /**
  * Gym coordinates for the map.
  *
- * The GraphQL `Gym` type does not (yet) expose the gym's `location` GeoPoint —
- * it lives on the domain model but is not in the wire schema, and the backend
- * is out of scope for this pass. So markers are placed at STABLE, deterministic
- * pseudo-coordinates derived from the gym id, scattered in a tight ring around a
- * city centre. This keeps the map honest (same gym always lands in the same
- * spot, distinct gyms don't overlap) without inventing precise addresses.
- *
- * TODO(backend): expose `location { lat lng }` on the `Gym` type, add it to the
- * GymCard fragment, and read the real coordinates here instead of hashing the id.
+ * The wire `Gym` type now exposes a `location { lat lng }` GeoPoint, so markers
+ * use the gym's REAL coordinates whenever the backend provides them (see
+ * `resolveGymCoords`). When `location` is null — an older gym record, or a query
+ * that didn't select it — we fall back to STABLE, deterministic pseudo-coords
+ * derived from the gym id, scattered in a tight ring around a city centre. That
+ * keeps the map honest (same gym always lands in the same spot, distinct gyms
+ * don't overlap) without inventing a precise address.
  */
 
 export interface LatLng {
   latitude: number;
   longitude: number;
+}
+
+/** The wire GeoPoint shape ({ lat, lng }) as selected on `Gym.location`. */
+export interface GeoPointLike {
+  lat: number;
+  lng: number;
 }
 
 /** Default map centre when we have no better anchor (central Bengaluru). */
@@ -50,4 +54,19 @@ export function gymCoords(gymId: string, center: LatLng = DEFAULT_MAP_CENTER): L
     latitude: center.latitude + Math.sin(angle) * radiusDeg,
     longitude: center.longitude + Math.cos(angle) * radiusDeg,
   };
+}
+
+/**
+ * Resolve a gym to a map coordinate: prefer the real `location` GeoPoint from
+ * the wire, and only fall back to the deterministic id hash when it is null.
+ */
+export function resolveGymCoords(
+  gymId: string,
+  location: GeoPointLike | null | undefined,
+  center: LatLng = DEFAULT_MAP_CENTER,
+): LatLng {
+  if (location) {
+    return { latitude: location.lat, longitude: location.lng };
+  }
+  return gymCoords(gymId, center);
 }

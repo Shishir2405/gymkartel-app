@@ -18,15 +18,20 @@ import {
 } from "../../../ui";
 import { X } from "phosphor-react-native";
 import type { MemberTabScreenProps } from "../../../app/navigation/types";
-import { useViewerQuery } from "../../../graphql/generated/graphql";
+import {
+  useViewerQuery,
+  useCreateTopUpOrderMutation,
+} from "../../../graphql/generated/graphql";
 import { topUpCost, type Tier } from "@gymkartel/contracts";
 import { parseCheckInQr } from "../offline/qr";
+import { newIdempotencyKey } from "../offline/outbox";
 import { useGymByCode } from "../hooks/useGymByCode";
 import { useCheckIn } from "../hooks/useCheckIn";
 import { TopUpSheet } from "../components/TopUpSheet";
 import { SosShield } from "../../system/components/SosShield";
 import { haptics } from "../../../lib/haptics";
 import { openCheckout } from "../../../lib/payments";
+import { toUiError } from "../../../lib/errors";
 
 /**
  * The scanner — the app's center of gravity. Camera acquires in under a second
@@ -39,6 +44,7 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   const [viewer] = useViewerQuery();
   const { resolve } = useGymByCode();
   const { checkIn } = useCheckIn();
+  const [, createTopUpOrder] = useCreateTopUpOrderMutation();
 
   const passTier = (viewer.data?.viewer?.activePass?.tier ?? null) as Tier | null;
   const handled = useRef(false);
@@ -133,14 +139,54 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
     if (!pendingTopUp) return;
     setTopUpFailed(false);
     setTopUpPaying(true);
+    // One idempotency key shared by BOTH the pre-scan top-up order and the
+    // outbox check-in below. The server keys the Razorpay order on it, so paying
+    // here and the later `syncCheckIn` collapse to a single order.
+    const idempotencyKey = newIdempotencyKey();
+    const enqueue = (acceptedTopUp: boolean) => {
+      checkIn({
+        gymCheckInCode: pendingTopUp.code,
+        gymId: pendingTopUp.gymId,
+        gymName: pendingTopUp.gymName,
+        acceptedTopUp,
+        idempotencyKey,
+      });
+    };
     try {
-      // Open the real UPI checkout for the top-up delta. There is no dedicated
-      // create-top-up-order mutation in the contract (the order is minted by the
-      // server during sync via `topUpRequired.razorpayOrderId`), so we pass a
-      // null order id; the wrapper's unavailable path preserves the flow in
-      // non-native builds. TODO(backend): expose a createTopUpOrder mutation.
+      // Create the Razorpay order for the top-up delta before confirming the scan.
+      let orderId: string | null = null;
+      try {
+        const created = await createTopUpOrder({
+          input: {
+            gymId: pendingTopUp.gymId,
+            gymCheckInCode: pendingTopUp.code,
+            idempotencyKey,
+          },
+        });
+        if (created.error && created.error.graphQLErrors.length > 0) {
+          // The server can decide no top-up is actually due (e.g. the pass was
+          // upgraded meanwhile): a door not a wall — walk in free, no charge.
+          if (toUiError(created.error)?.code === "TOP_UP_NOT_REQUIRED") {
+            const name = pendingTopUp.gymName;
+            enqueue(false);
+            setPendingTopUp(null);
+            setTopUpFailed(false);
+            succeed(name);
+            return;
+          }
+          void haptics.error();
+          setTopUpFailed(true);
+          return;
+        }
+        orderId = created.data?.createTopUpOrder.orderId ?? null;
+      } catch {
+        // No server in this workspace — proceed with a null order; the wrapper's
+        // unavailable path preserves the flow in non-native builds.
+      }
+
+      // Open the real UPI checkout for the top-up delta with the server order.
       const outcome = await openCheckout({
-        orderId: null,
+        orderId,
         amountPaise: pendingTopUp.amountPaise,
         name: "Gym Kartel",
         description: `Top-up · ${pendingTopUp.gymName}`,
@@ -154,22 +200,18 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
         // Keep the door open — the member can retry or step away.
         return;
       }
-      // success or unavailable → a door not a wall: check in immediately. The
-      // payment is reconciled during sync; the member is not held at the door.
-      checkIn({
-        gymCheckInCode: pendingTopUp.code,
-        gymId: pendingTopUp.gymId,
-        gymName: pendingTopUp.gymName,
-        acceptedTopUp: true,
-      });
+      // success or unavailable → a door not a wall: check in immediately with the
+      // SAME idempotency key as the order. The payment is reconciled during sync;
+      // the member is not held at the door.
       const name = pendingTopUp.gymName;
+      enqueue(true);
       setPendingTopUp(null);
       setTopUpFailed(false);
       succeed(name);
     } finally {
       setTopUpPaying(false);
     }
-  }, [pendingTopUp, checkIn, succeed]);
+  }, [pendingTopUp, createTopUpOrder, checkIn, succeed]);
 
   return (
     <View style={styles.root} testID="scanner">

@@ -149,8 +149,30 @@ export type CoachEarnings = {
   takeHomePaise: Scalars['Int']['output'];
 };
 
+/**
+ * Review-and-pay for a coach session (Flow 5): reserves the slot and creates the
+ * Razorpay order priced at the coach's pricePerSession.
+ */
+export type CreateBookingOrderInput = {
+  coachId: Scalars['ID']['input'];
+  gymId: Scalars['ID']['input'];
+  scheduledFor: Scalars['DateTime']['input'];
+};
+
 export type CreatePassOrderInput = {
   pack: PassPack;
+};
+
+/**
+ * Create the Razorpay order for the tier top-up delta BEFORE confirming a scan
+ * (Flow 4). Identify the gym by id (map/detail entry) or by scanned check-in code
+ * (scanner entry). Reuses the same order the scan would create, keyed on
+ * `idempotencyKey`, so paying here and later confirming the scan stay idempotent.
+ */
+export type CreateTopUpOrderInput = {
+  gymCheckInCode?: InputMaybe<Scalars['String']['input']>;
+  gymId?: InputMaybe<Scalars['ID']['input']>;
+  idempotencyKey: Scalars['String']['input'];
 };
 
 export type FeatureFlag = {
@@ -177,6 +199,8 @@ export type Gym = {
   distanceMeters: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   liveBusyFraction: Maybe<Scalars['Float']['output']>;
+  /** Map marker coordinates, mapped from the gym's stored GeoJSON point. */
+  location: Maybe<GeoPoint>;
   name: Scalars['String']['output'];
   photoUrls: Array<Scalars['String']['output']>;
   rating: Maybe<Scalars['Float']['output']>;
@@ -243,7 +267,11 @@ export type LocationShare = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Reserve a coach slot + create its Razorpay order (review & pay, Flow 5). */
+  createBookingOrder: RazorpayOrder;
   createPassOrder: RazorpayOrder;
+  /** Open UPI checkout for a tier top-up before confirming the scan (Flow 4). */
+  createTopUpOrder: RazorpayOrder;
   logWorkout: Array<LedgerEntry>;
   markNotificationRead: Scalars['Boolean']['output'];
   refreshSession: AuthTokens;
@@ -259,8 +287,18 @@ export type Mutation = {
 };
 
 
+export type MutationCreateBookingOrderArgs = {
+  input: CreateBookingOrderInput;
+};
+
+
 export type MutationCreatePassOrderArgs = {
   input: CreatePassOrderInput;
+};
+
+
+export type MutationCreateTopUpOrderArgs = {
+  input: CreateTopUpOrderInput;
 };
 
 
@@ -728,7 +766,7 @@ export type FeatureFlagsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type FeatureFlagsQuery = { __typename?: 'Query', featureFlags: Array<{ __typename?: 'FeatureFlag', key: string, enabled: boolean }> };
 
-export type GymCardFragment = { __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null };
+export type GymCardFragment = { __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null };
 
 export type GymsQueryVariables = Exact<{
   zone?: InputMaybe<Scalars['String']['input']>;
@@ -736,14 +774,14 @@ export type GymsQueryVariables = Exact<{
 }>;
 
 
-export type GymsQuery = { __typename?: 'Query', gyms: Array<{ __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null }> };
+export type GymsQuery = { __typename?: 'Query', gyms: Array<{ __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null }> };
 
 export type GymQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GymQuery = { __typename?: 'Query', gym: { __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null } | null };
+export type GymQuery = { __typename?: 'Query', gym: { __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null } | null };
 
 export type LeaderboardEntryRowFragment = { __typename?: 'LeaderboardEntry', userId: string, displayName: string, streak: number, totalCheckIns: number, position: number, isSelf: boolean };
 
@@ -813,6 +851,20 @@ export type CreatePassOrderMutationVariables = Exact<{
 
 
 export type CreatePassOrderMutation = { __typename?: 'Mutation', createPassOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
+
+export type CreateTopUpOrderMutationVariables = Exact<{
+  input: CreateTopUpOrderInput;
+}>;
+
+
+export type CreateTopUpOrderMutation = { __typename?: 'Mutation', createTopUpOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
+
+export type CreateBookingOrderMutationVariables = Exact<{
+  input: CreateBookingOrderInput;
+}>;
+
+
+export type CreateBookingOrderMutation = { __typename?: 'Mutation', createBookingOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
 
 export type NotificationRowFragment = { __typename?: 'AppNotification', id: string, kind: NotificationKind, title: string, body: string, read: boolean, createdAt: string };
 
@@ -1029,6 +1081,10 @@ export const GymCardFragmentDoc = gql`
   photoUrls
   rating
   liveBusyFraction
+  location {
+    lat
+    lng
+  }
 }
     `;
 export const LeaderboardEntryRowFragmentDoc = gql`
@@ -1418,6 +1474,32 @@ export const CreatePassOrderDocument = gql`
 
 export function useCreatePassOrderMutation() {
   return Urql.useMutation<CreatePassOrderMutation, CreatePassOrderMutationVariables>(CreatePassOrderDocument);
+};
+export const CreateTopUpOrderDocument = gql`
+    mutation CreateTopUpOrder($input: CreateTopUpOrderInput!) {
+  createTopUpOrder(input: $input) {
+    orderId
+    amountPaise
+    currency
+  }
+}
+    `;
+
+export function useCreateTopUpOrderMutation() {
+  return Urql.useMutation<CreateTopUpOrderMutation, CreateTopUpOrderMutationVariables>(CreateTopUpOrderDocument);
+};
+export const CreateBookingOrderDocument = gql`
+    mutation CreateBookingOrder($input: CreateBookingOrderInput!) {
+  createBookingOrder(input: $input) {
+    orderId
+    amountPaise
+    currency
+  }
+}
+    `;
+
+export function useCreateBookingOrderMutation() {
+  return Urql.useMutation<CreateBookingOrderMutation, CreateBookingOrderMutationVariables>(CreateBookingOrderDocument);
 };
 export const NotificationsDocument = gql`
     query Notifications {

@@ -36,3 +36,19 @@ mutation CreatePassOrder($input: CreatePassOrderInput!) {
     currency
   }
 }
+
+mutation CreateTopUpOrder($input: CreateTopUpOrderInput!) {
+  createTopUpOrder(input: $input) {
+    orderId
+    amountPaise
+    currency
+  }
+}
+
+mutation CreateBookingOrder($input: CreateBookingOrderInput!) {
+  createBookingOrder(input: $input) {
+    orderId
+    amountPaise
+    currency
+  }
+}

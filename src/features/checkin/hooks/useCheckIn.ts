@@ -8,6 +8,13 @@ export interface EnqueueArgs {
   gymId: string;
   gymName: string;
   acceptedTopUp: boolean;
+  /**
+   * Reuse a pre-generated idempotency key. The top-up flow mints the key BEFORE
+   * scanning (to create the Razorpay order) and threads it here so the pre-scan
+   * order and the later `syncCheckIn` collapse to one server-side order. When
+   * omitted, a fresh key is generated at enqueue time.
+   */
+  idempotencyKey?: string;
 }
 
 export interface EnqueuedCheckIn {
@@ -27,7 +34,7 @@ export function useCheckIn() {
     (args: EnqueueArgs): EnqueuedCheckIn => {
       const now = new Date().toISOString();
       const item: OutboxItem = {
-        idempotencyKey: newIdempotencyKey(),
+        idempotencyKey: args.idempotencyKey ?? newIdempotencyKey(),
         gymCheckInCode: args.gymCheckInCode,
         gymId: args.gymId,
         gymName: args.gymName,

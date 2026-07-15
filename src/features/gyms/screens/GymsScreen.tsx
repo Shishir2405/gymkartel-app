@@ -130,7 +130,7 @@ export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
         {header}
         <View style={styles.mapWrap}>
           <GymMap
-            markers={gyms.map((g) => ({ id: g.id, name: g.name }))}
+            markers={gyms.map((g) => ({ id: g.id, name: g.name, location: g.location }))}
             selectedGymId={activeId}
             onSelectMarker={setSelectedId}
             height={320}

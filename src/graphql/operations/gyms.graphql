@@ -9,6 +9,10 @@ fragment GymCard on Gym {
   photoUrls
   rating
   liveBusyFraction
+  location {
+    lat
+    lng
+  }
 }
 
 query Gyms($zone: String, $peekOtherTiers: Boolean) {

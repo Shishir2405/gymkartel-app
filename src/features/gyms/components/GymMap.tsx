@@ -5,17 +5,20 @@ import type { Region, MapStyleElement } from "react-native-maps";
 import { Text, colors, radius, spacing } from "@/ui";
 import { darkMapStyle } from "./mapStyle";
 import {
-  gymCoords,
+  resolveGymCoords,
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_DELTA,
   type LatLng,
+  type GeoPointLike,
 } from "@/features/gyms/lib/gymCoords";
 
 export interface GymMapMarker {
   id: string;
   name: string;
-  /** Optional explicit coordinate; falls back to the deterministic id hash. */
+  /** Optional explicit coordinate; wins over everything when provided. */
   coords?: LatLng;
+  /** Real wire `location` GeoPoint; preferred over the deterministic id hash. */
+  location?: GeoPointLike | null;
 }
 
 export interface GymMapProps {
@@ -113,7 +116,7 @@ export function GymMap({
           <Marker
             key={m.id}
             testID={`gym-marker-${m.id}`}
-            coordinate={m.coords ?? gymCoords(m.id, center)}
+            coordinate={m.coords ?? resolveGymCoords(m.id, m.location, center)}
             title={m.name}
             tracksViewChanges={false}
             {...(onSelectMarker ? { onPress: () => onSelectMarker(m.id) } : {})}

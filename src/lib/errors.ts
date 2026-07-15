@@ -11,6 +11,7 @@ export type UiErrorCode =
   | "NOT_FOUND"
   | "PAYMENT_FAILED"
   | "TOP_UP_REQUIRED"
+  | "TOP_UP_NOT_REQUIRED"
   | "PASS_REQUIRED"
   | "OFFLINE"
   | "RATE_LIMITED"
@@ -28,6 +29,7 @@ const COPY: Record<UiErrorCode, string> = {
   NOT_FOUND: "We could not find that.",
   PAYMENT_FAILED: "The payment did not go through. No money was taken.",
   TOP_UP_REQUIRED: "This gym is above your pass tier.",
+  TOP_UP_NOT_REQUIRED: "No top-up is needed — walk straight in.",
   PASS_REQUIRED: "This opens with a Pass.",
   OFFLINE: "You are offline. This will retry when you are back online.",
   RATE_LIMITED: "Too many attempts. Wait a moment and try again.",
@@ -43,6 +45,7 @@ function codeFrom(raw: unknown): UiErrorCode {
     "NOT_FOUND",
     "PAYMENT_FAILED",
     "TOP_UP_REQUIRED",
+    "TOP_UP_NOT_REQUIRED",
     "PASS_REQUIRED",
     "OFFLINE",
     "RATE_LIMITED",

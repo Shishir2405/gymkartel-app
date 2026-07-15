@@ -24,7 +24,7 @@ import { formatDistance, busyLabel } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { useAmenityIcon, amenityLabel } from "@/features/gyms/components/amenityIcon";
 import { GymMap } from "@/features/gyms/components/GymMap";
-import { gymCoords } from "@/features/gyms/lib/gymCoords";
+import { resolveGymCoords } from "@/features/gyms/lib/gymCoords";
 
 /** Open the gym's location in the platform maps app (Apple / Google Maps). */
 function openInMaps(name: string, lat: number, lng: number): void {
@@ -201,13 +201,13 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             LOCATION
           </Text>
           <GymMap
-            markers={[{ id: gym.id, name: gym.name }]}
+            markers={[{ id: gym.id, name: gym.name, location: gym.location }]}
             selectedGymId={gym.id}
-            center={gymCoords(gym.id)}
+            center={resolveGymCoords(gym.id, gym.location)}
             interactive={false}
             height={160}
             onPressMap={() => {
-              const c = gymCoords(gym.id);
+              const c = resolveGymCoords(gym.id, gym.location);
               openInMaps(gym.name, c.latitude, c.longitude);
             }}
             fallbackBody="Tap to open this gym in your maps app. Distances are from your zone."

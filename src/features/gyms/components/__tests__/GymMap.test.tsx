@@ -1,7 +1,11 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
 import { GymMap, GymMapFallback } from "../GymMap";
-import { gymCoords, DEFAULT_MAP_CENTER } from "@/features/gyms/lib/gymCoords";
+import {
+  gymCoords,
+  resolveGymCoords,
+  DEFAULT_MAP_CENTER,
+} from "@/features/gyms/lib/gymCoords";
 
 const MARKERS = [
   { id: "gym-1", name: "Iron Republic" },
@@ -35,5 +39,19 @@ describe("gymCoords", () => {
     // Within a few km of the default centre.
     expect(Math.abs(a.latitude - DEFAULT_MAP_CENTER.latitude)).toBeLessThan(0.05);
     expect(Math.abs(a.longitude - DEFAULT_MAP_CENTER.longitude)).toBeLessThan(0.05);
+  });
+});
+
+describe("resolveGymCoords", () => {
+  it("prefers the real wire location when present", () => {
+    const coords = resolveGymCoords("gym-1", { lat: 19.076, lng: 72.8777 });
+    expect(coords).toEqual({ latitude: 19.076, longitude: 72.8777 });
+    // The real coordinate must NOT be the deterministic id-hash fallback.
+    expect(coords).not.toEqual(gymCoords("gym-1"));
+  });
+
+  it("falls back to the deterministic id hash when location is null", () => {
+    expect(resolveGymCoords("gym-1", null)).toEqual(gymCoords("gym-1"));
+    expect(resolveGymCoords("gym-1", undefined)).toEqual(gymCoords("gym-1"));
   });
 });

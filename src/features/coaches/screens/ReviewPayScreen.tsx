@@ -22,7 +22,11 @@ import {
 } from "@/ui";
 import { Screen } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
-import { useCoachQuery, useGymQuery } from "@/graphql/generated/graphql";
+import {
+  useCoachQuery,
+  useGymQuery,
+  useCreateBookingOrderMutation,
+} from "@/graphql/generated/graphql";
 import { formatRupees, formatDate, formatTime } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
@@ -53,6 +57,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
   const gym = gymData?.gym;
   const uiError = toUiError(coachError ?? gymError);
 
+  const [, createBookingOrder] = useCreateBookingOrderMutation();
   const [method, setMethod] = useState<string>(UPI_METHODS[0]?.id ?? "gpay");
   const [paying, setPaying] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -88,11 +93,24 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
     setFailed(false);
     setPaying(true);
     try {
-      // No createBookingOrder mutation exists in the contract yet, so we pass a
-      // null order id. TODO(backend): expose a coach-booking order mutation and
-      // thread its orderId through here.
+      // Reserve the slot + create its Razorpay order on the server first.
+      let orderId: string | null = null;
+      try {
+        const created = await createBookingOrder({
+          input: { coachId, gymId, scheduledFor: slotIso },
+        });
+        if (created.error && created.error.graphQLErrors.length > 0) {
+          setFailed(true);
+          return;
+        }
+        orderId = created.data?.createBookingOrder.orderId ?? null;
+      } catch {
+        // No server in this workspace — proceed with a null order; the wrapper's
+        // unavailable path keeps the flow usable without native.
+      }
+
       const outcome = await openCheckout({
-        orderId: null,
+        orderId,
         amountPaise: coach.pricePerSessionPaise,
         name: "Gym Kartel",
         description: `Coaching session with ${coach.displayName}`,
