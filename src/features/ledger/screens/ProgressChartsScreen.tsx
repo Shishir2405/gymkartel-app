@@ -13,7 +13,7 @@ import {
   radius,
 } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
-import { MiniBarChart } from "@/features/ledger/components/MiniBarChart";
+import { ProgressLineChart } from "@/features/ledger/components/ProgressLineChart";
 import { toUiError } from "@/lib/errors";
 import { useLedgerHistoryQuery, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
 
@@ -130,21 +130,7 @@ export function ProgressChartsScreen(_props: MemberScreenProps<"ProgressCharts">
                 </Text>
               </View>
               <View style={styles.chart}>
-                <MiniBarChart points={points} unit={metric.unit} />
-              </View>
-              <View style={styles.legend}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.swatch, styles.swatchMuted]} />
-                  <Text preset="label" color="secondary">
-                    Past
-                  </Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.swatch, styles.swatchLatest]} />
-                  <Text preset="label" color="secondary">
-                    Latest
-                  </Text>
-                </View>
+                <ProgressLineChart points={points} unit={metric.unit} />
               </View>
             </Card>
           </View>
@@ -166,9 +152,4 @@ const styles = StyleSheet.create({
   latestWrap: { flexDirection: "row", alignItems: "flex-end" },
   unit: { marginLeft: spacing.xs, marginBottom: spacing.xs },
   chart: { marginTop: spacing.lg },
-  legend: { flexDirection: "row", gap: spacing.lg, marginTop: spacing.md },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
-  swatch: { width: 12, height: 12, borderRadius: radius.sm / 2 },
-  swatchMuted: { backgroundColor: colors.surface.raised, borderWidth: 1, borderColor: colors.stroke.hairline },
-  swatchLatest: { backgroundColor: colors.accent.primary },
 });

@@ -21,6 +21,7 @@ import {
   PassPack as GqlPassPack,
 } from "@/graphql/generated/graphql";
 import { formatRupees } from "@/lib/format";
+import { openCheckout } from "@/lib/payments";
 
 const UPI_METHODS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "gpay", label: "Google Pay" },
@@ -53,28 +54,56 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
   const [{ fetching }, createPassOrder] = useCreatePassOrderMutation();
   const [method, setMethod] = useState<string>(UPI_METHODS[0]?.id ?? "gpay");
   const [failed, setFailed] = useState(false);
+  const [paying, setPaying] = useState(false);
 
   const onPay = async () => {
     setFailed(false);
-    if (!isTopUp && pack) {
-      try {
-        const result = await createPassOrder({
-          input: { pack: pack as unknown as GqlPassPack },
-        });
-        // With no server the mutation resolves to an error we ignore, or to an
-        // order we could reconcile. A genuine payment failure surfaces below.
-        if (result.error && result.error.graphQLErrors.length > 0) {
-          setFailed(true);
-          return;
+    setPaying(true);
+    try {
+      // Pass purchase: create the Razorpay order on the server first.
+      let orderId: string | null = null;
+      if (!isTopUp && pack) {
+        try {
+          const result = await createPassOrder({
+            input: { pack: pack as unknown as GqlPassPack },
+          });
+          if (result.error && result.error.graphQLErrors.length > 0) {
+            setFailed(true);
+            return;
+          }
+          orderId = result.data?.createPassOrder.orderId ?? null;
+        } catch {
+          // No server in this workspace — proceed with a null order; the
+          // wrapper's unavailable path keeps the flow usable without native.
         }
-      } catch {
-        // Network/no-server: fall through to the optimistic success screen.
       }
-      navigation.navigate("PurchaseSuccess", { pack });
-      return;
+
+      // Open the real UPI checkout (or the graceful unavailable path).
+      const outcome = await openCheckout({
+        orderId,
+        amountPaise,
+        name: "Gym Kartel",
+        description: isTopUp ? "Check-in top-up" : "Gym Kartel pass",
+      });
+
+      if (outcome.status === "failed") {
+        setFailed(true);
+        return;
+      }
+      if (outcome.status === "cancelled") {
+        // Member dismissed the sheet — stay put, no error theatre.
+        return;
+      }
+      // success OR unavailable: proceed. The server reconciles the real payment
+      // via webhook; client success only means "await confirmation".
+      if (!isTopUp && pack) {
+        navigation.navigate("PurchaseSuccess", { pack });
+      } else {
+        navigation.goBack();
+      }
+    } finally {
+      setPaying(false);
     }
-    // Top-up: return to the scanner flow once paid.
-    navigation.goBack();
   };
 
   if (failed) {
@@ -114,7 +143,7 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
       footer={
         <Button
           label={`Pay ${formatRupees(amountPaise)}`}
-          loading={fetching}
+          loading={fetching || paying}
           onPress={() => void onPay()}
         />
       }

@@ -26,6 +26,7 @@ import { useCoachQuery, useGymQuery } from "@/graphql/generated/graphql";
 import { formatRupees, formatDate, formatTime } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
+import { openCheckout } from "@/lib/payments";
 
 /** The UPI methods offered. */
 const UPI_METHODS = [
@@ -82,20 +83,37 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
     );
   }
 
-  const onPay = () => {
+  const onPay = async () => {
     void haptics.medium();
     setFailed(false);
     setPaying(true);
-    // Mock gateway round-trip. No server is wired, so resolve to confirmed.
-    setTimeout(() => {
-      setPaying(false);
+    try {
+      // No createBookingOrder mutation exists in the contract yet, so we pass a
+      // null order id. TODO(backend): expose a coach-booking order mutation and
+      // thread its orderId through here.
+      const outcome = await openCheckout({
+        orderId: null,
+        amountPaise: coach.pricePerSessionPaise,
+        name: "Gym Kartel",
+        description: `Coaching session with ${coach.displayName}`,
+      });
+      if (outcome.status === "failed") {
+        setFailed(true);
+        return;
+      }
+      if (outcome.status === "cancelled") {
+        return;
+      }
+      // success or unavailable → proceed; the server confirms via webhook.
       navigation.navigate("BookingConfirmed", { bookingId: coachId });
-    }, 900);
+    } finally {
+      setPaying(false);
+    }
   };
 
   if (failed) {
     return (
-      <Screen footer={<Button label={`Retry · ${formatRupees(coach.pricePerSessionPaise)}`} onPress={onPay} />}>
+      <Screen footer={<Button label={`Retry · ${formatRupees(coach.pricePerSessionPaise)}`} onPress={() => void onPay()} />}>
         <StatePlaceholder
           variant="error"
           icon={<WarningCircle size={40} color={colors.text.secondary} />}
@@ -112,7 +130,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
       footer={
         <Button
           label={`Pay ${formatRupees(coach.pricePerSessionPaise)}`}
-          onPress={onPay}
+          onPress={() => void onPay()}
           loading={paying}
         />
       }

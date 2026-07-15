@@ -26,6 +26,7 @@ import { useCheckIn } from "../hooks/useCheckIn";
 import { TopUpSheet } from "../components/TopUpSheet";
 import { SosShield } from "../../system/components/SosShield";
 import { haptics } from "../../../lib/haptics";
+import { openCheckout } from "../../../lib/payments";
 
 /**
  * The scanner — the app's center of gravity. Camera acquires in under a second
@@ -48,6 +49,8 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
     gymTier: Tier;
     amountPaise: number;
   } | null>(null);
+  const [topUpPaying, setTopUpPaying] = useState(false);
+  const [topUpFailed, setTopUpFailed] = useState(false);
 
   useEffect(() => {
     if (!hasPermission) void requestPermission();
@@ -126,19 +129,46 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
     },
   });
 
-  const confirmTopUp = useCallback(() => {
+  const confirmTopUp = useCallback(async () => {
     if (!pendingTopUp) return;
-    // A door not a wall: accept the top-up and check in immediately. Payment is
-    // reconciled during sync; the member is not held at the door.
-    checkIn({
-      gymCheckInCode: pendingTopUp.code,
-      gymId: pendingTopUp.gymId,
-      gymName: pendingTopUp.gymName,
-      acceptedTopUp: true,
-    });
-    const name = pendingTopUp.gymName;
-    setPendingTopUp(null);
-    succeed(name);
+    setTopUpFailed(false);
+    setTopUpPaying(true);
+    try {
+      // Open the real UPI checkout for the top-up delta. There is no dedicated
+      // create-top-up-order mutation in the contract (the order is minted by the
+      // server during sync via `topUpRequired.razorpayOrderId`), so we pass a
+      // null order id; the wrapper's unavailable path preserves the flow in
+      // non-native builds. TODO(backend): expose a createTopUpOrder mutation.
+      const outcome = await openCheckout({
+        orderId: null,
+        amountPaise: pendingTopUp.amountPaise,
+        name: "Gym Kartel",
+        description: `Top-up · ${pendingTopUp.gymName}`,
+      });
+      if (outcome.status === "failed") {
+        void haptics.error();
+        setTopUpFailed(true);
+        return;
+      }
+      if (outcome.status === "cancelled") {
+        // Keep the door open — the member can retry or step away.
+        return;
+      }
+      // success or unavailable → a door not a wall: check in immediately. The
+      // payment is reconciled during sync; the member is not held at the door.
+      checkIn({
+        gymCheckInCode: pendingTopUp.code,
+        gymId: pendingTopUp.gymId,
+        gymName: pendingTopUp.gymName,
+        acceptedTopUp: true,
+      });
+      const name = pendingTopUp.gymName;
+      setPendingTopUp(null);
+      setTopUpFailed(false);
+      succeed(name);
+    } finally {
+      setTopUpPaying(false);
+    }
   }, [pendingTopUp, checkIn, succeed]);
 
   return (
@@ -193,9 +223,12 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
           visible
           gymTier={pendingTopUp.gymTier}
           amountPaise={pendingTopUp.amountPaise}
-          onConfirm={confirmTopUp}
+          loading={topUpPaying}
+          failed={topUpFailed}
+          onConfirm={() => void confirmTopUp()}
           onClose={() => {
             setPendingTopUp(null);
+            setTopUpFailed(false);
             handled.current = false;
           }}
         />

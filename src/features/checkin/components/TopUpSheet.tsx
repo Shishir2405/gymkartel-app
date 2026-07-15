@@ -10,6 +10,10 @@ export interface TopUpSheetProps {
   amountPaise: number;
   onConfirm: () => void;
   onClose: () => void;
+  /** Checkout in flight — the confirm button shows its busy state. */
+  loading?: boolean;
+  /** Last attempt failed — a plain, reassuring retry (no themed error). */
+  failed?: boolean;
 }
 
 /**
@@ -23,6 +27,8 @@ export function TopUpSheet({
   amountPaise,
   onConfirm,
   onClose,
+  loading = false,
+  failed = false,
 }: TopUpSheetProps) {
   const tierWord = gymTier.charAt(0) + gymTier.slice(1).toLowerCase();
   return (
@@ -34,8 +40,21 @@ export function TopUpSheet({
       <View style={styles.mathRow}>
         <Text preset="bodyMedium">1 pass day + {formatRupees(amountPaise)}</Text>
       </View>
+      {failed ? (
+        <Text preset="body" color="secondary" style={styles.failed}>
+          The payment did not go through. No money was taken — you can try again.
+        </Text>
+      ) : null}
       <View style={styles.action}>
-        <Button label={`Confirm and pay ${formatRupees(amountPaise)}`} onPress={onConfirm} />
+        <Button
+          label={
+            failed
+              ? `Try again · ${formatRupees(amountPaise)}`
+              : `Confirm and pay ${formatRupees(amountPaise)}`
+          }
+          onPress={onConfirm}
+          loading={loading}
+        />
       </View>
       <View style={styles.ghost}>
         <Button label="Not now" variant="ghost" onPress={onClose} />
@@ -55,4 +74,5 @@ const styles = StyleSheet.create({
   },
   action: {},
   ghost: { marginTop: spacing.xs },
+  failed: { marginBottom: spacing.lg },
 });

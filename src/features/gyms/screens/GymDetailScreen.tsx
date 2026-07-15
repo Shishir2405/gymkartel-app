@@ -1,5 +1,5 @@
 import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Linking, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CaretLeft, MapTrifold, Star } from "phosphor-react-native";
@@ -23,6 +23,20 @@ import { useGymQuery, useViewerQuery } from "@/graphql/generated/graphql";
 import { formatDistance, busyLabel } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { useAmenityIcon, amenityLabel } from "@/features/gyms/components/amenityIcon";
+import { GymMap } from "@/features/gyms/components/GymMap";
+import { gymCoords } from "@/features/gyms/lib/gymCoords";
+
+/** Open the gym's location in the platform maps app (Apple / Google Maps). */
+function openInMaps(name: string, lat: number, lng: number): void {
+  const label = encodeURIComponent(name);
+  const url =
+    Platform.OS === "ios"
+      ? `maps:0,0?q=${label}@${lat},${lng}`
+      : `geo:${lat},${lng}?q=${lat},${lng}(${label})`;
+  void Linking.openURL(url).catch(() => {
+    void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`);
+  });
+}
 
 const HOURS: ReadonlyArray<{ day: string; hours: string }> = [
   { day: "Mon - Fri", hours: "5:00 AM - 11:00 PM" },
@@ -182,18 +196,25 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             ))}
           </Card>
 
-          {/* Map snippet placeholder */}
+          {/* Map snippet — tapping opens the platform maps app. */}
           <Text preset="label" color="secondary" style={styles.sectionLabel}>
             LOCATION
           </Text>
-          <Card padded style={styles.mapCard}>
-            <View style={styles.mapRow}>
-              <MapTrifold size={22} color={colors.text.secondary} weight="regular" />
-              <Text preset="body" color="secondary" style={{ flex: 1 }}>
-                Map preview opens once native maps are enabled. Distances are from your zone.
-              </Text>
-            </View>
-          </Card>
+          <GymMap
+            markers={[{ id: gym.id, name: gym.name }]}
+            selectedGymId={gym.id}
+            center={gymCoords(gym.id)}
+            interactive={false}
+            height={160}
+            onPressMap={() => {
+              const c = gymCoords(gym.id);
+              openInMaps(gym.name, c.latitude, c.longitude);
+            }}
+            fallbackBody="Tap to open this gym in your maps app. Distances are from your zone."
+          />
+          <Text preset="body" color="secondary" style={styles.mapHint}>
+            {gym.address}
+          </Text>
 
           {/* Reviews */}
           <Text preset="label" color="secondary" style={styles.sectionLabel}>
@@ -265,8 +286,7 @@ const styles = StyleSheet.create({
   amenity: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minWidth: "42%" },
   amenityLabel: {},
   hoursRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  mapCard: {},
-  mapRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  mapHint: { marginTop: spacing.sm },
   reviewHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   stars: { flexDirection: "row", gap: 2 },
   stickyWrap: {

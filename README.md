@@ -9,6 +9,7 @@ Multi-tier gym membership app for India (UPI). React Native + Expo (dev-client c
 - **Offline**: local-first `expo-sqlite` outbox for check-ins — queued when offline, synced when online, **never blocking the check-in UI on the network**.
 - **Navigation**: React Navigation native-stack + bottom-tabs. Exactly 5 member tabs: Home / Gyms / **Check-in (raised center)** / Track / Club. Role switch to an 8-screen coach experience.
 - **Icons**: `phosphor-react-native` (fill weight = the one orange active tab). **Motion**: Reanimated 3 (seal-stamp + rank-up only). **Camera/QR**: `react-native-vision-camera`. **Auth**: `expo-secure-store`. Haptics: `expo-haptics`.
+- **Maps**: `react-native-maps` — dark-styled gym map (Apple Maps on iOS, Google on Android) with the accent orange reserved for the selected gym marker. **Charts**: `react-native-gifted-charts` (SVG) — orange line, hairline grid, Barlow numerals. **Payments**: `react-native-razorpay` — native UPI checkout, wrapped by `src/lib/payments.ts`. All three degrade gracefully when the native module is absent (see below).
 - **Codegen**: GraphQL Code Generator points at `@gymkartel/contracts`'s `schema.graphql` and emits typed urql hooks.
 
 ## The contract
@@ -46,7 +47,14 @@ Each feature exports screens from an `index.ts`; navigators import them. Shared 
 ## Offline check-in (the hard requirement)
 A scan enqueues to the SQLite outbox and the success seal shows immediately — the UI never awaits the network. `src/features/checkin/offline/` holds the pure reducer (`outbox.ts`), SQLite persistence (`db.ts`) and the sync engine (`sync.ts`). Sync is idempotent on a device-generated `idempotencyKey`, so an offline scan retried during sync collapses to one check-in. This is the most-tested code in the app.
 
+## Native modules (dev-client build required)
+`react-native-maps` and `react-native-razorpay` are **native** modules. They autolink into a dev-client / production build and are **not** available in Expo Go, JSDOM, or Jest, and **cannot ship over OTA** — adding or upgrading them needs a fresh `expo run:ios` / `expo run:android` (or EAS) build.
+
+- **Maps**: `react-native-maps` ships an Expo config plugin, registered in `app.config.ts`. iOS uses Apple Maps (no key, inherits the dark UI style); Android uses Google Maps and needs `GOOGLE_MAPS_ANDROID_API_KEY` (wired via `android.config.googleMaps.apiKey`). The `Gym` GraphQL type does not yet expose `location { lat lng }`, so markers use stable pseudo-coordinates derived from the gym id (`src/features/gyms/lib/gymCoords.ts`) around a city centre — swap to real coordinates once the backend exposes them.
+- **Razorpay**: has **no** Expo config plugin (it autolinks natively), so it is *not* listed in `plugins`. Set the publishable key via `RAZORPAY_KEY_ID` (exposed as `extra.razorpayKeyId`). `src/lib/payments.ts` is a typed wrapper: it resolves the SDK lazily and returns `{ status: "unavailable" }` when the native module is absent, so payment screens keep their existing optimistic flow off-build and are unit-testable via an injected gateway. **A client-side success is never proof of payment** — the server reconciles via the Razorpay webhook; client success only means "proceed to await confirmation".
+- **Graceful test path**: `jest.setup.js` mocks `react-native-maps` and `react-native-gifted-charts` to lightweight views; `payments.ts` exposes `setRazorpayGatewayForTesting()` for the wrapper's success/cancel/failure tests.
+
 ## Notes / deviations
 - No backend is running in this workspace, so screens render their loading/empty/error/offline states; codegen runs fully offline against the local schema file.
-- Maps render as tasteful placeholders (real maps need native map config); charts are drawn with plain views (no chart lib).
+- Real maps + real charts + native Razorpay UPI are wired (above). Only `createPassOrder` exists in the contract, so the pass-purchase screen creates a real order; the coach-booking (`ReviewPay`) and check-in top-up flows open the checkout with a `null` order id and are marked `TODO(backend)` pending `createBookingOrder` / `createTopUpOrder` mutations (the backend is out of scope for this pass).
 - Stories are kept as a lightweight typed catalog (`src/ui/stories/*`, `.storybook/types.ts`) rather than bundling the full Storybook runtime.

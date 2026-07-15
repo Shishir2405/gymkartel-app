@@ -24,7 +24,7 @@ import {
 } from "@/ui";
 import type { MemberTabScreenProps } from "@/app/navigation/types";
 import { useViewerQuery, useLedgerTodayQuery, type LedgerEntryRowFragment } from "@/graphql/generated/graphql";
-import { MiniBarChart } from "@/features/ledger/components/MiniBarChart";
+import { ProgressLineChart } from "@/features/ledger/components/ProgressLineChart";
 import { MOCK_BENCH_1RM } from "@/features/ledger/data/mockLedger";
 
 /**
@@ -199,7 +199,7 @@ function LockedLedger({ onGetPass }: { onGetPass: () => void }) {
               BENCH 1RM
             </Text>
             <View style={{ marginTop: spacing.md }}>
-              <MiniBarChart points={MOCK_BENCH_1RM.points} unit="kg" height={120} />
+              <ProgressLineChart points={MOCK_BENCH_1RM.points} unit="kg" height={120} />
             </View>
           </Card>
           <View style={styles.fakeTwin}>

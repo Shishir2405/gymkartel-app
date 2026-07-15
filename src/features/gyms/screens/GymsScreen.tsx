@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { MapPin, MapTrifold, Star, SlidersHorizontal } from "phosphor-react-native";
+import { MapPin, Star, SlidersHorizontal } from "phosphor-react-native";
 import {
   Screen,
   Text,
@@ -22,6 +22,7 @@ import { useGymsQuery, type GymCardFragment } from "@/graphql/generated/graphql"
 import { formatDistance, busyLabel } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { useUiStore } from "@/store/uiStore";
+import { GymMap } from "@/features/gyms/components/GymMap";
 
 /**
  * The Gyms tab — a tier-filtered list of nearby gyms. A real map needs native
@@ -40,6 +41,11 @@ export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
   const gyms = data?.gyms ?? [];
   const uiError = toUiError(error);
 
+  const [view, setView] = useState<"list" | "map">("list");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The one orange marker: the tapped gym, else the nearest (first) one.
+  const activeId = selectedId ?? gyms[0]?.id ?? null;
+
   const header = (
     <View>
       {!isOnline ? <OfflineBanner /> : null}
@@ -52,20 +58,11 @@ export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
         />
       </View>
 
-      {/* Non-interactive map placeholder — the list is the working view. */}
-      <Card padded style={styles.mapCard}>
-        <View style={styles.mapRow}>
-          <MapTrifold size={22} color={colors.text.secondary} weight="regular" />
-          <View style={styles.mapText}>
-            <Text preset="bodyMedium">Map view is coming</Text>
-            <Text preset="body" color="secondary">
-              Browse the list below for now. Distances are from your zone.
-            </Text>
-          </View>
+      <View style={styles.controlsRow}>
+        <View style={styles.toggle}>
+          <Chip label="List" selected={view === "list"} onPress={() => setView("list")} />
+          <Chip label="Map" selected={view === "map"} onPress={() => setView("map")} />
         </View>
-      </Card>
-
-      <View style={styles.filtersRow}>
         <Button
           label="Filters"
           variant="secondary"
@@ -122,6 +119,32 @@ export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
           title="No gyms in your zone yet"
           body="We are onboarding gyms near you. Join the waitlist and we will let you know the moment your zone opens."
         />
+      </Screen>
+    );
+  }
+
+  if (view === "map") {
+    const activeGym = gyms.find((g) => g.id === activeId) ?? null;
+    return (
+      <Screen scroll>
+        {header}
+        <View style={styles.mapWrap}>
+          <GymMap
+            markers={gyms.map((g) => ({ id: g.id, name: g.name }))}
+            selectedGymId={activeId}
+            onSelectMarker={setSelectedId}
+            height={320}
+            fallbackBody="Live map opens in the dev-client build. Browse the list for now — distances are from your zone."
+          />
+        </View>
+        {activeGym ? (
+          <View style={{ marginTop: spacing.md }}>
+            <GymRow
+              gym={activeGym}
+              onPress={() => navigation.navigate("GymDetail", { gymId: activeGym.id })}
+            />
+          </View>
+        ) : null}
       </Screen>
     );
   }
@@ -193,10 +216,14 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginBottom: spacing.lg,
   },
-  mapCard: { marginBottom: spacing.md },
-  mapRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  mapText: { flex: 1, gap: 2 },
-  filtersRow: { flexDirection: "row" },
+  controlsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  toggle: { flexDirection: "row", gap: spacing.sm },
+  mapWrap: { marginTop: spacing.lg },
   rowCard: { marginBottom: spacing.md },
   rowInner: { paddingVertical: 0 },
   rowMain: { flex: 1, gap: spacing.sm },
