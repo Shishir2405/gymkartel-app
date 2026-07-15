@@ -1,0 +1,33 @@
+# .github/workflows/release.yml for gymkartel-app — EAS build + submit to Play/App Store.
+# Triggered on a release-branch push; staged rollout is configured in eas.json.
+name: app-release
+
+on:
+  push:
+    branches: [release]
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "android | ios | all"
+        default: all
+
+jobs:
+  build-submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: pnpm }
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: pnpm install --frozen-lockfile
+      # Production build → AAB (Android) / IPA (iOS), non-interactive.
+      - name: EAS build (production)
+        run: eas build --platform ${{ github.event.inputs.platform || 'all' }} --profile production --non-interactive --no-wait
+      # Submit to the internal track first; promote to production with staged
+      # rollout via the Play Console / eas submit config once vitals are clean.
+      - name: EAS submit
+        run: eas submit --platform ${{ github.event.inputs.platform || 'all' }} --profile production --non-interactive --latest

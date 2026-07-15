@@ -1,0 +1,31 @@
+# .github/workflows/ci.yml for gymkartel-app
+name: app-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Codegen (regenerate typed hooks from the contract SDL)
+        run: pnpm codegen
+      - name: Fail if codegen output is stale (committed types drifted from SDL)
+        run: git diff --exit-code -- src/graphql/generated || (echo "::error::run pnpm codegen and commit the result" && exit 1)
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit + component tests
+        run: pnpm test
