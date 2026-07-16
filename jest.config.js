@@ -7,7 +7,7 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@gymkartel/contracts$":
-      "<rootDir>/../gymkartel-backend/packages/contracts/dist/index.js",
+      "<rootDir>/vendor/gymkartel-contracts/dist/index.js",
   },
   testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
 };

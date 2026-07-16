@@ -1,7 +1,7 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema: "../gymkartel-backend/packages/contracts/src/schema.graphql",
+  schema: "./vendor/gymkartel-contracts/src/schema.graphql",
   documents: ["src/graphql/operations/**/*.graphql"],
   ignoreNoDocuments: true,
   generates: {
