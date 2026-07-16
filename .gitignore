@@ -10,3 +10,7 @@ web-build/
 ios/
 android/
 coverage/
+
+# vendored contracts must be tracked (EAS builds from a git archive)
+!vendor/gymkartel-contracts/dist/
+!vendor/gymkartel-contracts/dist/**
