@@ -2,11 +2,6 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { colors, spacing } from "@/ui";
 
-/**
- * Quiet progress dots for the stepped health quiz. The current step is the one
- * orange mark; the rest are hairline dots. Used above the card, never competing
- * with the primary button.
- */
 export function StepDots({ total, index }: { total: number; index: number }) {
   return (
     <View style={styles.row} accessibilityLabel={`Step ${index + 1} of ${total}`}>

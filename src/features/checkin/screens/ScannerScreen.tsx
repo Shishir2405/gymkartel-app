@@ -34,21 +34,10 @@ import { openCheckout } from "../../../lib/payments";
 import { toUiError } from "../../../lib/errors";
 import { IS_DEMO } from "../../../config/appMode";
 
-/**
- * The scanner entry point. In a DEMO build there is no camera and no permission
- * — a themed surface with a "Simulate scan" button runs the exact same offline
- * check-in success path. In production it's the live vision-camera scanner. The
- * split keeps each component's hooks unconditional (IS_DEMO is build-time fixed).
- */
 export function ScannerScreen(props: MemberTabScreenProps<"CheckIn">) {
   return IS_DEMO ? <DemoScannerSurface {...props} /> : <LiveScannerScreen {...props} />;
 }
 
-/**
- * The scanner — the app's center of gravity. Camera acquires in under a second
- * and a scan is processed OFFLINE: we never wait on the network to check you in.
- * The SOS shield sits top-right; the whole surface is a frame with one clear job.
- */
 function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   const device = useCameraDevice("back");
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -73,7 +62,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
     if (!hasPermission) void requestPermission();
   }, [hasPermission, requestPermission]);
 
-  // Reset the one-shot guard whenever the screen regains focus.
   useEffect(() => {
     const unsub = navigation.addListener("focus", () => {
       handled.current = false;
@@ -107,7 +95,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
       const gymName = gym?.name ?? "This gym";
       const gymTier = (gym?.tier ?? passTier ?? "BASIC") as Tier;
 
-      // No pass at all -> route to the ladder (the Ledger opens with a Pass).
       if (!passTier) {
         navigation.navigate("PassLadder");
         return;
@@ -126,7 +113,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
         return;
       }
 
-      // Same/lower tier -> enqueue immediately, never blocking on network.
       checkIn({
         gymCheckInCode: parsed.code,
         gymId: gym?.id ?? parsed.code,
@@ -150,9 +136,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
     if (!pendingTopUp) return;
     setTopUpFailed(false);
     setTopUpPaying(true);
-    // One idempotency key shared by BOTH the pre-scan top-up order and the
-    // outbox check-in below. The server keys the Razorpay order on it, so paying
-    // here and the later `syncCheckIn` collapse to a single order.
     const idempotencyKey = newIdempotencyKey();
     const enqueue = (acceptedTopUp: boolean) => {
       checkIn({
@@ -164,7 +147,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
       });
     };
     try {
-      // Create the Razorpay order for the top-up delta before confirming the scan.
       let orderId: string | null = null;
       try {
         const created = await createTopUpOrder({
@@ -175,8 +157,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
           },
         });
         if (created.error && created.error.graphQLErrors.length > 0) {
-          // The server can decide no top-up is actually due (e.g. the pass was
-          // upgraded meanwhile): a door not a wall — walk in free, no charge.
           if (toUiError(created.error)?.code === "TOP_UP_NOT_REQUIRED") {
             const name = pendingTopUp.gymName;
             enqueue(false);
@@ -191,11 +171,8 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
         }
         orderId = created.data?.createTopUpOrder.orderId ?? null;
       } catch {
-        // No server in this workspace — proceed with a null order; the wrapper's
-        // unavailable path preserves the flow in non-native builds.
       }
 
-      // Open the real UPI checkout for the top-up delta with the server order.
       const outcome = await openCheckout({
         orderId,
         amountPaise: pendingTopUp.amountPaise,
@@ -208,12 +185,8 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
         return;
       }
       if (outcome.status === "cancelled") {
-        // Keep the door open — the member can retry or step away.
         return;
       }
-      // success or unavailable → a door not a wall: check in immediately with the
-      // SAME idempotency key as the order. The payment is reconciled during sync;
-      // the member is not held at the door.
       const name = pendingTopUp.gymName;
       enqueue(true);
       setPendingTopUp(null);
@@ -291,11 +264,6 @@ function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   );
 }
 
-/**
- * The demo scanner surface. No camera, no permission, no vision-camera mount —
- * a "Simulate scan" button drives the identical offline success path (enqueue +
- * navigate to the seal-stamp success screen).
- */
 function DemoScannerSurface({ navigation }: MemberTabScreenProps<"CheckIn">) {
   const [viewer] = useViewerQuery();
   const { checkIn } = useCheckIn();
@@ -306,9 +274,6 @@ function DemoScannerSurface({ navigation }: MemberTabScreenProps<"CheckIn">) {
     setBusy(true);
     void haptics.success();
     const gymName = "Iron Republic";
-    // Same-tier scan (PREMIUM pass at a PREMIUM gym) → no top-up; enqueue writes
-    // locally and the outbox syncs against the SyncCheckIn fixture in the
-    // background. The success screen stamps the 450ms seal + share card.
     checkIn({
       gymCheckInCode: "gym_iron_republic",
       gymId: "gym_iron_republic",

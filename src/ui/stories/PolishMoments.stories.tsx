@@ -7,12 +7,6 @@ import { RankUpTakeover } from "../motion/RankUpTakeover";
 import { Button } from "../components/Button";
 import { Text } from "../components/Text";
 
-/**
- * The two — and only two — moments the app spends motion polish on:
- *  1. The check-in seal stamp (450ms + one heavy haptic).
- *  2. The rank-up cinematic takeover.
- * Everything else stays quiet.
- */
 function SealStampStory() {
   const [key, setKey] = useState(0);
   return (

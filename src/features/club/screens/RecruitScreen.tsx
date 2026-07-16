@@ -12,17 +12,10 @@ import {
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { REFERRAL_CODE } from "@/features/club/data/mock";
 
-/**
- * Recruit. The referral code sits in a card with a secondary copy action, the
- * reward is explained plainly, and the single orange primary button at the
- * bottom opens the native share sheet with the invite.
- */
 export function RecruitScreen(_props: MemberScreenProps<"Recruit">) {
   const toast = useToast();
 
   const onCopy = () => {
-    // No clipboard module is installed in this project, so we confirm the action
-    // with a toast. Wire expo-clipboard's setStringAsync here when it is added.
     toast.show("Code copied");
   };
 

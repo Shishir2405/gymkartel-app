@@ -8,11 +8,6 @@ import { useOnboardingStore } from "@/store/onboardingStore";
 import { haptics } from "@/lib/haptics";
 import { Field } from "../components/Field";
 
-/**
- * Name and face. The photo is optional but encouraged — a real member card
- * wants a real face. The avatar tile is the tap target; the primary button
- * stays the only orange element and is disabled until a name is entered.
- */
 export function NamePhotoScreen({ navigation }: AuthScreenProps<"NamePhoto">) {
   const storedName = useOnboardingStore((s) => s.name);
   const avatarUri = useOnboardingStore((s) => s.avatarUri);

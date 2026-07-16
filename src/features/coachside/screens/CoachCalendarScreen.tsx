@@ -22,12 +22,6 @@ import { useCoachCalendarQuery, type CoachSessionRowFragment } from "@/graphql/g
 
 const HOURS = [6, 7, 8, 12, 17, 18, 19];
 
-/**
- * Coach calendar. A row of date pills across the top, the selected day's booked
- * sessions below — live from `coachCalendar`. A manage-availability sheet
- * toggles which hour slots are open (held locally; availability has no server
- * surface yet). Loading / empty / error states preserved.
- */
 export function CoachCalendarScreen(_props: CoachTabScreenProps<"CoachCalendar">) {
   const { show } = useToast();
   const [selected, setSelected] = useState(0);
@@ -64,7 +58,7 @@ export function CoachCalendarScreen(_props: CoachTabScreenProps<"CoachCalendar">
         </PressableRow>
       </View>
 
-      {/* Date pills */}
+      {}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -114,7 +108,7 @@ export function CoachCalendarScreen(_props: CoachTabScreenProps<"CoachCalendar">
         )}
       </ScrollView>
 
-      {/* Manage availability */}
+      {}
       <Sheet visible={manageOpen} onClose={() => setManageOpen(false)} title="Open hours">
         <Text preset="body" color="secondary" style={{ marginBottom: spacing.md }}>
           Tap the hours you want to hold open. Clients can only book slots you have opened.

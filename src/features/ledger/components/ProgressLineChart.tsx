@@ -5,31 +5,22 @@ import type { lineDataItem } from "react-native-gifted-charts";
 import { Text, colors, fontFamily, spacing } from "@/ui";
 
 export interface ProgressPoint {
-  /** Short axis label, e.g. "15 Jul". */
   date: string;
   value: number;
 }
 
 export interface ProgressLineChartProps {
-  /** Ordered oldest -> newest. */
   points: readonly ProgressPoint[];
   unit: string;
   height?: number;
 }
 
-/** Barlow-Condensed numerals for every axis figure (design system rule). */
 const axisTextStyle = {
   color: colors.text.secondary,
   fontFamily: fontFamily.numberBold,
   fontSize: 12,
 } as const;
 
-/**
- * The real progress chart: a react-native-gifted-charts line chart styled in the
- * Soft-Dark palette. The line and its data points are the one orange element;
- * the grid is a single hairline; axis numerals are Barlow Condensed. Under two
- * points there is no trend to draw, so it shows a calm one-liner instead.
- */
 export function ProgressLineChart({ points, unit, height = 160 }: ProgressLineChartProps) {
   const data: lineDataItem[] = useMemo(
     () =>
@@ -54,10 +45,8 @@ export function ProgressLineChart({ points, unit, height = 160 }: ProgressLineCh
   const values = points.map((p) => p.value);
   const max = Math.max(...values);
   const min = Math.min(...values);
-  // Pad the range a touch so the line never hugs the top/bottom edge.
   const pad = (max - min || max || 1) * 0.15;
 
-  // Fit the chart inside the card without horizontal scroll.
   const screenW = Dimensions.get("window").width;
   const yAxisLabelWidth = 44;
   const chartWidth = Math.max(screenW - 2 * spacing.screen - 2 * spacing.lg - yAxisLabelWidth, 200);
@@ -77,7 +66,6 @@ export function ProgressLineChart({ points, unit, height = 160 }: ProgressLineCh
         dataPointsColor={colors.accent.primary}
         dataPointsRadius={3}
         startFillColor={colors.accent.primary}
-        // Hairline grid + axes on the palette stroke token.
         rulesColor={colors.stroke.hairline}
         rulesThickness={1}
         yAxisColor={colors.stroke.hairline}

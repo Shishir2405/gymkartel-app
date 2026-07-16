@@ -27,12 +27,6 @@ const EXPERIENCE: { value: Experience; label: string }[] = [
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
 const TOTAL_STEPS = 4;
 
-/**
- * The four-card health quiz, stepped one at a time with progress dots. Coarse
- * on purpose — it steers gym and coach suggestions, it is not medical data.
- * Selections write straight to the onboarding form so a back-swipe never loses
- * an answer.
- */
 export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) {
   const goal = useOnboardingStore((s) => s.goal);
   const experience = useOnboardingStore((s) => s.experience);
@@ -47,7 +41,7 @@ export function HealthQuizScreen({ navigation }: AuthScreenProps<"HealthQuiz">) 
       ? goal !== null
       : step === 1
         ? experience !== null
-        : true; // days always has a default; injuries is optional
+        : true;
 
   const isLast = step === TOTAL_STEPS - 1;
 

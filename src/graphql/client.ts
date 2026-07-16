@@ -6,17 +6,6 @@ import { tokenStore } from "../lib/tokenStore";
 import { IS_DEMO } from "../config/appMode";
 import { demoExchange } from "./demo/demoExchange";
 
-/**
- * The urql client. Its normalized cache is the single source of truth for ALL
- * server state — screens read from it via generated hooks and never duplicate
- * server data into Zustand.
- *
- * Exchanges (order matters):
- *  - graphcache: normalized cache with type keys.
- *  - authExchange: injects the secure-store access token; refreshes on 401.
- *  - mapExchange: leaves GraphQL extension codes intact for `toUiError`.
- *  - fetchExchange: the network.
- */
 function graphqlUrl(): string {
   const fromExtra = (Constants.expoConfig?.extra as { graphqlUrl?: string } | undefined)
     ?.graphqlUrl;
@@ -25,7 +14,6 @@ function graphqlUrl(): string {
 
 const graphcache = cacheExchange({
   keys: {
-    // Types without an `id` field need explicit keying (or null for embedded).
     Streak: () => null,
     VersionGate: () => null,
     AuthTokens: () => null,
@@ -33,8 +21,6 @@ const graphcache = cacheExchange({
     PassLadderRow: (data) => (data as { pack?: string }).pack ?? null,
     TopUpRequired: () => null,
     SyncCheckInResult: () => null,
-    // New feature surface — types without an `id` are keyed explicitly or
-    // embedded (null) so graphcache normalizes cleanly and stays warning-free.
     ChatThread: (data) => (data as { bookingId?: string }).bookingId ?? null,
     LocationShare: () => null,
     WorkoutChip: () => null,
@@ -72,7 +58,6 @@ const auth = authExchange(async (utils) => {
       );
     },
     async refreshAuth() {
-      // A real refresh mutation would run here; on failure we clear the session.
       if (!refreshToken) {
         await tokenStore.clear();
         accessToken = null;
@@ -86,11 +71,6 @@ const auth = authExchange(async (utils) => {
 });
 
 export function createUrqlClient(): Client {
-  // DEMO build: a fully offline client. The normalized cache still fronts every
-  // read, but `demoExchange` resolves each operation from local fixtures — there
-  // is NO auth/fetch/subscription network exchange, so no backend, tokens, or
-  // sockets are ever touched. The `url` is unused (no fetchExchange) but the
-  // Client requires one.
   if (IS_DEMO) {
     return new Client({
       url: graphqlUrl(),
@@ -99,7 +79,6 @@ export function createUrqlClient(): Client {
     });
   }
 
-  // PRODUCTION build — unchanged: real backend, auth, and network.
   return new Client({
     url: graphqlUrl(),
     exchanges: [graphcache, auth, mapExchange({}), fetchExchange],
@@ -107,5 +86,4 @@ export function createUrqlClient(): Client {
   });
 }
 
-// Fallback default cache export kept for tests that don't need normalization.
 export { defaultCacheExchange };

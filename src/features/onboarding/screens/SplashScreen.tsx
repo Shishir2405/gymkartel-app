@@ -3,11 +3,6 @@ import { StyleSheet, View } from "react-native";
 import { Text, Button, Screen, colors, spacing, fontFamily } from "@/ui";
 import type { AuthScreenProps } from "@/app/navigation/types";
 
-/**
- * The front door. Wordmark centered in Barlow, a single quiet tagline, and the
- * one orange button pinned at the bottom. No decoration, no noise — the calm
- * before the club.
- */
 export function SplashScreen({ navigation }: AuthScreenProps<"Splash">) {
   return (
     <Screen

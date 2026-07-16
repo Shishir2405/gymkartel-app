@@ -42,11 +42,6 @@ const FAQS: Faq[] = [
   },
 ];
 
-/**
- * Support. The safety-incident report sits at the very top as a destructive
- * entry that opens a plain, serious confirm. Below it are quiet FAQ rows and a
- * single contact action. Nothing here competes with the incident path.
- */
 export function SupportScreen(_props: MemberScreenProps<"Support">) {
   const toast = useToast();
   const [expanded, setExpanded] = useState<string | null>(null);

@@ -34,7 +34,6 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December",
 ] as const;
 
-/** "2026-07" -> "July 2026". Falls back to the raw key if it can't parse. */
 function seasonLabel(season: string): string {
   const parts = season.split("-");
   const year = parts[0];
@@ -43,13 +42,6 @@ function seasonLabel(season: string): string {
   return month && year ? `${month} ${year}` : season;
 }
 
-/**
- * Leaderboards. A custom segmented control (selected pill orange) switches
- * scope, re-querying `leaderboard` per segment. The top three sit on a podium
- * where only #1 carries the gold stroke. A ranked list follows, and the
- * viewer's own row — from the server's sticky `self` (or an `isSelf` page row)
- * — is pinned to the bottom with an orange hairline so it is always visible.
- */
 export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
   const [scope, setScope] = useState<LeaderboardSegment>(LeaderboardSegment.Zone);
   const [{ data, fetching, error }, refetch] = useLeaderboardQuery({
@@ -125,7 +117,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Podium — only #1 gets the gold stroke */}
+            {}
             {podium.length > 0 ? (
               <View style={styles.podium}>
                 {podium.map((entry) => (
@@ -134,7 +126,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
               </View>
             ) : null}
 
-            {/* Ranked list */}
+            {}
             <Card padded={false} style={styles.listCard}>
               {rest.map((entry, index) => (
                 <View key={entry.userId}>
@@ -145,7 +137,7 @@ export function LeaderboardsScreen(_props: MemberScreenProps<"Leaderboards">) {
             </Card>
           </ScrollView>
 
-          {/* Sticky viewer row */}
+          {}
           {selfEntry ? (
             <View style={styles.sticky} testID="leaderboards.self">
               <RankRow entry={selfEntry} emphasized />

@@ -73,9 +73,7 @@ describe("ChatThreadScreen", () => {
     ]);
 
     const { getByText, queryByText } = renderScreen();
-    // The safety strip must always be present on an unlocked thread.
     expect(getByText("Numbers and links are hidden for your safety.")).toBeTruthy();
-    // The raw phone number must never render — maskPii replaces it.
     expect(queryByText(/9876543210/)).toBeNull();
   });
 });

@@ -16,10 +16,6 @@ export interface SkeletonProps {
   style?: ViewStyle;
 }
 
-/**
- * Shimmer loader. The app uses skeletons, NEVER spinners, for content loading.
- * Quiet 1200ms opacity pulse — no flashy motion.
- */
 export function Skeleton({ width = "100%", height = 16, radius: r = radius.sm, style }: SkeletonProps) {
   const progress = useSharedValue(0.4);
   useEffect(() => {
@@ -43,7 +39,6 @@ export function Skeleton({ width = "100%", height = 16, radius: r = radius.sm, s
   );
 }
 
-/** Convenience full-card skeleton block. */
 export function SkeletonCard({ height = 120 }: { height?: number }) {
   return (
     <View style={styles.card}>

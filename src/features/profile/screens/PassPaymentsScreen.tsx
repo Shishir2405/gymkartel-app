@@ -19,17 +19,11 @@ import type { MemberScreenProps } from "@/app/navigation/types";
 import { useViewerQuery } from "@/graphql/generated/graphql";
 import { formatDate } from "@/lib/format";
 
-/** Mock saved UPI methods — no billing service wired yet. */
 const PAYMENT_METHODS = [
   { id: "upi-1", handle: "you@okhdfc", primary: true },
   { id: "upi-2", handle: "you@okaxis", primary: false },
 ] as const;
 
-/**
- * Pass & payments. A single summary of the active pass on top; when the pass has
- * expired or been exhausted the summary becomes a renew prompt that surfaces the
- * rolled-over days and the one orange action. Payment methods sit below, plain.
- */
 export function PassPaymentsScreen({ navigation }: MemberScreenProps<"PassPayments">) {
   const [{ data, fetching, error }] = useViewerQuery();
   const viewer = data?.viewer ?? null;

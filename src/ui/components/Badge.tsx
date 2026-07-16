@@ -10,10 +10,6 @@ export interface BadgeProps {
   tone?: Tone;
 }
 
-/**
- * Small pill label. Gold tone is LOCKED — only pass it for the #1 rank or a
- * Legend coach. Everything else uses neutral/accent/positive.
- */
 export function Badge({ label, tone = "neutral" }: BadgeProps) {
   const color =
     tone === "gold"
@@ -32,7 +28,6 @@ export function Badge({ label, tone = "neutral" }: BadgeProps) {
   );
 }
 
-/** Tier badge — BASIC / STANDARD / PREMIUM, always neutral-toned (not gold). */
 export function TierBadge({ tier }: { tier: "BASIC" | "STANDARD" | "PREMIUM" }) {
   return <Badge label={tier} tone="neutral" />;
 }

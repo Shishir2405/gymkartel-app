@@ -18,15 +18,9 @@ export interface RankUpTakeoverProps {
   fromRank: string;
   toRank: string;
   onDone: () => void;
-  /** Gold treatment only when reaching the very top rank. */
   isTopRank?: boolean;
 }
 
-/**
- * The rank-up cinematic takeover — full-screen, screenshot-built, the second
- * (and last) place the app spends polish. A quiet fade, the new rank scales up
- * with one heavy haptic, then a single primary action.
- */
 export function RankUpTakeover({ fromRank, toRank, onDone, isTopRank = false }: RankUpTakeoverProps) {
   const scale = useSharedValue(0.6);
   const glow = useSharedValue(0);

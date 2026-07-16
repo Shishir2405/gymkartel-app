@@ -3,10 +3,6 @@ import { StyleSheet, View } from "react-native";
 import { colors, spacing } from "../tokens";
 import { Text } from "./Text";
 
-/**
- * Quiet strip shown when the device is offline. Check-in never blocks on the
- * network, so the banner reassures rather than alarms.
- */
 export function OfflineBanner({ pendingCount = 0 }: { pendingCount?: number }) {
   return (
     <View style={styles.wrap} testID="offline-banner">

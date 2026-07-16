@@ -5,7 +5,6 @@ import { LeaderboardsScreen } from "../LeaderboardsScreen";
 import type { MemberScreenProps } from "@/app/navigation/types";
 import * as gql from "@/graphql/generated/graphql";
 
-// Preserve the real enums/types; only stub the network hook.
 jest.mock("@/graphql/generated/graphql", () => ({
   __esModule: true,
   ...jest.requireActual("@/graphql/generated/graphql"),
@@ -57,10 +56,8 @@ describe("LeaderboardsScreen", () => {
     ]);
 
     const { getByText, queryAllByText } = renderScreen();
-    // The sticky self row renders "You" and its server position.
     expect(getByText("You")).toBeTruthy();
     expect(getByText("214")).toBeTruthy();
-    // The season label is derived from the "YYYY-MM" season key.
     expect(queryAllByText(/July 2026 season/).length).toBeGreaterThan(0);
   });
 

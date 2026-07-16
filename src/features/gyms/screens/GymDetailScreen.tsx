@@ -26,7 +26,6 @@ import { useAmenityIcon, amenityLabel } from "@/features/gyms/components/amenity
 import { GymMap } from "@/features/gyms/components/GymMap";
 import { resolveGymCoords } from "@/features/gyms/lib/gymCoords";
 
-/** Open the gym's location in the platform maps app (Apple / Google Maps). */
 function openInMaps(name: string, lat: number, lng: number): void {
   const label = encodeURIComponent(name);
   const url =
@@ -50,12 +49,6 @@ const REVIEWS: ReadonlyArray<{ name: string; text: string }> = [
   { name: "Kabir", text: "Good free-weights section. Cardio machines are well maintained." },
 ];
 
-/**
- * Gym detail. A gallery, identity, amenity row, live-busy meter, plain weekly
- * hours, a small map snippet placeholder and three reviews. The sticky bottom
- * bar is adaptive: an ACTIVE pass shows "Check in here" (opens the scanner tab),
- * otherwise the one orange button routes to the pass ladder.
- */
 export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDetail">) {
   const { gymId } = route.params;
   const [{ data, fetching, error }] = useGymQuery({ variables: { id: gymId } });
@@ -95,7 +88,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Gallery */}
+        {}
         <View style={styles.gallery}>
           {gym.photoUrls.length > 0 ? (
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
@@ -118,7 +111,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
         </View>
 
         <View style={styles.body}>
-          {/* Identity */}
+          {}
           <View style={styles.nameRow}>
             <Text preset="title" style={{ flex: 1 }}>
               {gym.name}
@@ -144,7 +137,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             {gym.address}
           </Text>
 
-          {/* Live-busy meter */}
+          {}
           <Card padded style={styles.section}>
             <View style={styles.busyHead}>
               <Text preset="label" color="secondary">
@@ -159,7 +152,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             </View>
           </Card>
 
-          {/* Amenities */}
+          {}
           {gym.amenities.length > 0 ? (
             <>
               <Text preset="label" color="secondary" style={styles.sectionLabel}>
@@ -178,7 +171,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             </>
           ) : null}
 
-          {/* Hours */}
+          {}
           <Text preset="label" color="secondary" style={styles.sectionLabel}>
             HOURS
           </Text>
@@ -196,7 +189,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             ))}
           </Card>
 
-          {/* Map snippet — tapping opens the platform maps app. */}
+          {}
           <Text preset="label" color="secondary" style={styles.sectionLabel}>
             LOCATION
           </Text>
@@ -216,7 +209,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
             {gym.address}
           </Text>
 
-          {/* Reviews */}
+          {}
           <Text preset="label" color="secondary" style={styles.sectionLabel}>
             REVIEWS
           </Text>
@@ -242,7 +235,7 @@ export function GymDetailScreen({ navigation, route }: MemberScreenProps<"GymDet
         </View>
       </ScrollView>
 
-      {/* Sticky adaptive bottom bar */}
+      {}
       <SafeAreaView edges={["bottom"]} style={styles.stickyWrap}>
         <View style={styles.sticky}>
           {hasActivePass ? (

@@ -24,12 +24,6 @@ import { toUiError } from "@/lib/errors";
 import { useUiStore } from "@/store/uiStore";
 import { GymMap } from "@/features/gyms/components/GymMap";
 
-/**
- * The Gyms tab — a tier-filtered list of nearby gyms. A real map needs native
- * config, so the default view is a calm LIST with a small non-interactive map
- * placeholder banner on top. The "Peek other tiers" chip lets a member browse
- * gyms above/below their pass tier without leaving the list.
- */
 export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
   const peekOtherTiers = useUiStore((s) => s.peekOtherTiers);
   const togglePeek = useUiStore((s) => s.togglePeek);
@@ -43,7 +37,6 @@ export function GymsScreen({ navigation }: MemberTabScreenProps<"Gyms">) {
 
   const [view, setView] = useState<"list" | "map">("list");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // The one orange marker: the tapped gym, else the nearest (first) one.
   const activeId = selectedId ?? gyms[0]?.id ?? null;
 
   const header = (

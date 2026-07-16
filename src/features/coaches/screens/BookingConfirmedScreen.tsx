@@ -21,11 +21,6 @@ import type { MemberScreenProps } from "@/app/navigation/types";
 import { useBookingsQuery, useCoachQuery } from "@/graphql/generated/graphql";
 import { formatDate, formatTime } from "@/lib/format";
 
-/**
- * Booking confirmed — a calm sign-off, not a celebration. If the booking exists
- * in the cache we render it; otherwise we fall back to the coach and the params.
- * The single orange action opens the chat with the coach.
- */
 export function BookingConfirmedScreen({ navigation, route }: MemberScreenProps<"BookingConfirmed">) {
   const { bookingId } = route.params;
   const [{ data: bookingsData }] = useBookingsQuery();

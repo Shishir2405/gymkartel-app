@@ -17,12 +17,6 @@ import { useBookingsQuery, useShareLocationMutation } from "@/graphql/generated/
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
-/**
- * Location share — a restrained, safety-first sheet. Live location can only be
- * shared while the booking is active; otherwise the whole sheet is greyed out
- * and the action is disabled. Sharing auto-expires when the session ends, so a
- * link can never outlive the reason it was shared.
- */
 export function LocationShareScreen({ navigation, route }: MemberScreenProps<"LocationShare">) {
   const { bookingId } = route.params;
   const { show } = useToast();
@@ -30,14 +24,11 @@ export function LocationShareScreen({ navigation, route }: MemberScreenProps<"Lo
   const [{ fetching }, shareLocation] = useShareLocationMutation();
 
   const booking = data?.bookings.find((b) => b.id === bookingId);
-  // Enabled when we cannot prove it is locked, or the booking is unlocked.
   const enabled = booking == null ? true : booking.chatUnlocked;
 
   const onShare = async () => {
     if (!enabled || fetching) return;
     void haptics.medium();
-    // TODO(no-geolocation-dep): wire expo-location for real coordinates; the
-    // server binds the live share to the booking regardless of the seed point.
     const result = await shareLocation({ bookingId, lat: 0, lng: 0 });
     const uiError = toUiError(result.error);
     show(uiError ? uiError.message : "Sharing live location");

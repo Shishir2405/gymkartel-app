@@ -9,11 +9,6 @@ import { ConnectivityProvider } from "./ConnectivityProvider";
 import { SosProvider } from "../../features/system/components/SosProvider";
 import { DemoBadge } from "../components/DemoBadge";
 
-/**
- * Composes every app-wide provider in the right order:
- *  gesture root -> safe area -> urql (server state cache) -> theme (static
- *  tokens) -> auth session -> connectivity mirror -> toast -> SOS overlay host.
- */
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const client = useMemo(() => createUrqlClient(), []);
   return (
@@ -26,7 +21,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                 <ToastProvider>
                   <SosProvider>
                     {children}
-                    {/* App-wide, low-prominence marker; renders only in demo. */}
+                    {}
                     <DemoBadge />
                   </SosProvider>
                 </ToastProvider>

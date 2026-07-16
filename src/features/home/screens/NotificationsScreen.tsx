@@ -22,11 +22,6 @@ import {
   type NotificationRowFragment,
 } from "../../../graphql/generated/graphql";
 
-/**
- * Notifications ("Intel"). Plain, factual entries — no exclamation marks, no
- * emojis. Live from `notifications`; tapping an unread row marks it read via
- * `markNotificationRead`. Loading / empty / error states preserved.
- */
 export function NotificationsScreen(_props: MemberScreenProps<"Notifications">) {
   const [{ data, fetching, error }, refetch] = useNotificationsQuery();
   const [, markRead] = useMarkNotificationReadMutation();

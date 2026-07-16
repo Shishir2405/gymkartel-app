@@ -1,7 +1,6 @@
 import { flushOutbox, type SyncOneFn } from "../sync";
 import type { OutboxItem, OutboxState } from "../outbox";
 
-// Mock the SQLite layer — the sync engine's persistence side effects.
 jest.mock("../db", () => ({
   outboxDb: {
     setStatus: jest.fn(async () => undefined),
@@ -45,7 +44,7 @@ describe("flushOutbox", () => {
 
     const result = await flushOutbox(state, syncOne);
 
-    expect(seen).toEqual(["a", "b"]); // oldest first
+    expect(seen).toEqual(["a", "b"]);
     expect(result).toEqual({ attempted: 2, succeeded: 2, failed: 0 });
     expect(outboxDb.setStatus).toHaveBeenCalledWith("a", "synced");
     expect(outboxDb.pruneSynced).toHaveBeenCalledTimes(1);

@@ -14,11 +14,6 @@ import {
 import { formatRupees } from "@/lib/format";
 import type { CoachCardFragment } from "@/graphql/generated/graphql";
 
-/**
- * A coach tile for the browse grid. Price is shown UPFRONT (never "contact for
- * price"). The verified tick is the single orange accent; a Legend coach is the
- * only place gold is allowed here.
- */
 export function CoachCard({
   coach,
   onPress,

@@ -2,14 +2,6 @@ import React from "react";
 import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 import { colors, spacing } from "../tokens";
 
-/**
- * Icons are phosphor-react-native. They are ALWAYS flat — never rendered with
- * neumorphic shadows. Fill weight is reserved for the one active tab (the single
- * orange element on the tab bar); regular/light everywhere else.
- *
- * We type the icon as a component with phosphor's IconProps-ish shape so screens
- * pass `Icon={House}` from phosphor directly.
- */
 export interface PhosphorIconProps {
   size?: number;
   color?: string;
@@ -36,11 +28,9 @@ export interface IconButtonProps {
   weight?: PhosphorIconProps["weight"];
   accessibilityLabel: string;
   style?: ViewStyle;
-  /** Stable e2e selector (Maestro/Detox). See .maestro/README.md. */
   testID?: string;
 }
 
-/** Tappable icon with a generous hit target. */
 export function IconButton({
   icon,
   onPress,

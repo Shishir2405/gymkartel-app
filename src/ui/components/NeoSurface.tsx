@@ -7,26 +7,11 @@ type Elevation = "raised" | "pressed" | "flat";
 export interface NeoSurfaceProps extends ViewProps {
   elevation?: Elevation;
   radius?: number;
-  /** Adds the mandatory 1px hairline border used on every card. */
   hairline?: boolean;
   padded?: boolean;
   children?: React.ReactNode;
 }
 
-/**
- * The single source of neumorphic shadow math. NEVER hand-roll dual shadows in
- * a screen — compose this.
- *
- * "raised": soft surface floating off the base — dark shadow bottom-right, light
- * shadow top-left. RN only paints one native shadow per view, so we stack two
- * shadow layers (dark under, light over) beneath the content.
- * "pressed": the surface sinks IN. RN has no inset shadow, so we approximate the
- * inverted look with the pressed background + a light hairline at the top edge
- * and a dark hairline at the bottom edge.
- *
- * Text and icons are never children rendered *with* these shadows applied to
- * them — they sit on top of the surface, flat.
- */
 export function NeoSurface({
   elevation = "raised",
   radius = radiusTokens.card,
@@ -75,7 +60,6 @@ export function NeoSurface({
     );
   }
 
-  // raised — two stacked shadow layers on iOS, elevation on Android.
   if (Platform.OS === "android") {
     return (
       <View
@@ -94,7 +78,7 @@ export function NeoSurface({
 
   return (
     <View style={[{ borderRadius: radius }, style]} {...rest}>
-      {/* dark shadow (bottom-right) */}
+      {}
       <View
         style={[
           StyleSheet.absoluteFill,
@@ -108,7 +92,7 @@ export function NeoSurface({
           },
         ]}
       />
-      {/* light shadow (top-left) */}
+      {}
       <View
         style={[
           StyleSheet.absoluteFill,
@@ -122,7 +106,7 @@ export function NeoSurface({
           },
         ]}
       />
-      {/* content surface with hairline */}
+      {}
       <View style={[base, padded && styles.pad]}>{children}</View>
     </View>
   );

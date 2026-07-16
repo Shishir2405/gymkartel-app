@@ -10,17 +10,10 @@ export interface TopUpSheetProps {
   amountPaise: number;
   onConfirm: () => void;
   onClose: () => void;
-  /** Checkout in flight — the confirm button shows its busy state. */
   loading?: boolean;
-  /** Last attempt failed — a plain, reassuring retry (no themed error). */
   failed?: boolean;
 }
 
-/**
- * Flow 4 top-up sheet. This is a DOOR, not a wall: the copy is inviting, the
- * confirm action is the single orange button, and the maths are shown plainly.
- * "This is a Premium Territory. Use 1 day + ₹99?"
- */
 export function TopUpSheet({
   visible,
   gymTier,

@@ -3,13 +3,6 @@ import { StyleSheet, View } from "react-native";
 import { ArrowCircleUp } from "phosphor-react-native";
 import { Screen, Text, Button, Sheet, colors, spacing } from "@/ui";
 
-/**
- * Version-gate surfaces (Section 6). Both are presentational — they take plain
- * callbacks and hold no navigation. `SoftUpdatePrompt` is a dismissible sheet
- * shown when a newer build exists; `HardUpdateGate` is the full-screen wall
- * shown when the current build has dropped below the minimum supported version.
- */
-
 export function SoftUpdatePrompt({
   onDismiss,
   onUpdate,

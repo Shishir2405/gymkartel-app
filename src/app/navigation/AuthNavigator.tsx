@@ -13,7 +13,6 @@ import {
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
-/** Onboarding flow, shown while signed out. */
 export function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={{ ...stackScreenOptions, headerShown: false }}>

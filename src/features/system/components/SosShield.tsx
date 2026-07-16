@@ -4,12 +4,6 @@ import { ShieldWarning } from "phosphor-react-native";
 import { colors } from "../../../ui";
 import { useSos } from "./SosProvider";
 
-/**
- * The SOS shield. Appears top-right on the scanner, an active session, and chat.
- * It requires a deliberate long-press (~1s) to open the SOS overlay — a tap does
- * nothing, so it can't be triggered by accident. Quiet, neutral styling; the
- * seriousness lives in the overlay, not here.
- */
 export function SosShield() {
   const { open } = useSos();
   return (

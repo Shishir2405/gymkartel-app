@@ -47,13 +47,6 @@ const ROWS: readonly ClubRow[] = [
   { icon: UserPlus, label: "Recruit", hint: "Invite and earn a bonus day", to: "Recruit" },
 ];
 
-/**
- * Club home. The rank card is the hero: current rank in Barlow, a progress bar
- * toward the next rank, and the plain weeks-to-next line — all sourced from the
- * `rankCard` query with its public `thresholds` ladder. Streak comes from the
- * viewer query. Below the hero, quiet navigation rows lead to the five club
- * destinations, and the full rank ladder is listed plainly at the bottom.
- */
 export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
   const [viewer] = useViewerQuery();
   const [rank] = useRankCardQuery();
@@ -124,7 +117,7 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
         </Card>
       ) : null}
 
-      {/* Navigation rows */}
+      {}
       <Card padded={false} style={styles.rows}>
         {ROWS.map((row, index) => (
           <View key={row.to}>
@@ -149,7 +142,7 @@ export function ClubHomeScreen({ navigation }: MemberTabScreenProps<"Club">) {
         ))}
       </Card>
 
-      {/* Rank ladder, stated plainly from the public thresholds */}
+      {}
       {card ? (
         <>
           <Text preset="label" color="secondary" style={styles.ladderHeading}>

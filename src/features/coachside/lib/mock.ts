@@ -1,9 +1,3 @@
-/**
- * Coach-side mock data. There is no dedicated server query for the coach's own
- * roster, calendar or earnings yet, so the coach experience is driven by these
- * cleanly-typed local fixtures. Money is always paise (integer) so it flows
- * through `formatRupees` and the `COACH_TAKE_RATE` maths untouched.
- */
 
 export type CertStatus = "PENDING" | "VERIFIED" | "REJECTED";
 
@@ -19,7 +13,6 @@ export interface CoachClient {
 
 export interface CoachSession {
   id: string;
-  /** null client => a free, bookable slot the coach is holding open. */
   clientId: string | null;
   clientName: string | null;
   gym: string | null;
@@ -40,7 +33,6 @@ export interface CoachReview {
   author: string;
   rating: number;
   text: string;
-  /** A public reply the coach has already posted, if any. */
   reply: string | null;
 }
 
@@ -152,7 +144,6 @@ export const MOCK_SESSIONS: CoachSession[] = [
   },
 ];
 
-/** Recent completed sessions used for the earnings ledger. */
 export const MOCK_COMPLETED: CoachSession[] = [
   {
     id: "e1",
@@ -260,12 +251,6 @@ export function threadSeed(peerName: string): CoachChatMessage[] {
   ];
 }
 
-/**
- * Minimal PII masking for the coach chat. The dedicated chat feature owns the
- * canonical masker; this local copy keeps coachside self-contained until that
- * lands. Masks phone numbers and email addresses so contact details are never
- * exchanged in-thread.
- */
 export function maskPii(text: string): string {
   return text
     .replace(/\b(?:\+?\d[\d\s-]{7,}\d)\b/g, "[hidden]")

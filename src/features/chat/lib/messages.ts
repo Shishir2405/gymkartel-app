@@ -1,8 +1,3 @@
-/**
- * Local mock chat messages. There is no chat server wired yet, so threads are
- * generated deterministically per booking. Bodies deliberately include a phone
- * number and a link so the masking layer is visibly exercised on render.
- */
 export interface ChatMessage {
   id: string;
   fromMe: boolean;
@@ -10,7 +5,6 @@ export interface ChatMessage {
   sentAtIso: string;
 }
 
-/** A stable, plausible thread for a given booking. */
 export function mockThread(bookingId: string): ChatMessage[] {
   const base = new Date();
   base.setHours(9, 0, 0, 0);

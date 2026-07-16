@@ -10,10 +10,6 @@ import { ClubHomeScreen } from "../../features/club";
 
 const Tab = createBottomTabNavigator<MemberTabParamList>();
 
-/**
- * The five member tabs. Check-in is the raised center. The custom TabBar owns
- * the neumorphic surface and the single-orange active state.
- */
 export function MemberTabs() {
   return (
     <Tab.Navigator

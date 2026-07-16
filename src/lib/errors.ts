@@ -1,10 +1,5 @@
 import type { CombinedError } from "urql";
 
-/**
- * Typed UI errors mapped from GraphQL extension codes. Screens branch on
- * `UiErrorCode` rather than parsing message strings, so copy stays controlled
- * and human. Serious errors (payment/refund) get plain, non-themed screens.
- */
 export type UiErrorCode =
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
@@ -54,7 +49,6 @@ function codeFrom(raw: unknown): UiErrorCode {
   return known.includes(raw as UiErrorCode) ? (raw as UiErrorCode) : "UNKNOWN";
 }
 
-/** Map an urql CombinedError to a single typed UI error. */
 export function toUiError(error: CombinedError | undefined): UiError | null {
   if (!error) return null;
   if (error.networkError) {

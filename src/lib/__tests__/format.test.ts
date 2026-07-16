@@ -12,7 +12,6 @@ describe("money formatting from the contract source of truth", () => {
   });
 
   it("renders the ladder prices from contract helpers (never hardcoded)", () => {
-    // 15-day STANDARD must be cheaper per day than 7-day STANDARD (decoy).
     const sevenPerDay = passPerDayPrice("STANDARD", "SEVEN_DAY");
     const fifteenPerDay = passPerDayPrice("STANDARD", "FIFTEEN_DAY");
     expect(fifteenPerDay).toBeLessThan(sevenPerDay);

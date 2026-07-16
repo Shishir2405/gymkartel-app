@@ -1,20 +1,10 @@
-/**
- * Local mock data for the CLUB feature. Rank / leaderboard / territory / card
- * data has no server query yet, so everything here is typed cleanly and treated
- * as the single source of truth for the club screens. When a real API lands,
- * swap these constants for generated hooks — the screen types will not change.
- */
 
-// ---- Rank ladder -----------------------------------------------------------
 
 export interface Rank {
-  /** Display name, e.g. "SCOUT". */
   readonly name: string;
-  /** Cumulative check-ins required to hold this rank. */
   readonly checkInsRequired: number;
 }
 
-/** The full rank ladder, ascending. First entry is the entry rank. */
 export const RANK_LADDER: readonly Rank[] = [
   { name: "SCOUT", checkInsRequired: 0 },
   { name: "OPERATOR", checkInsRequired: 30 },
@@ -24,23 +14,17 @@ export const RANK_LADDER: readonly Rank[] = [
   { name: "KINGPIN", checkInsRequired: 600 },
 ];
 
-/** The viewer's lifetime check-in count (mock). Drives current rank + progress. */
 export const MOCK_CHECK_INS = 18;
 
 export interface RankProgress {
   readonly current: Rank;
-  /** Null when already at the top of the ladder. */
   readonly next: Rank | null;
-  /** Progress toward the next rank, 0..1. Full (1) at the top rank. */
   readonly fraction: number;
-  /** Check-ins remaining to reach the next rank. Zero at the top rank. */
   readonly remaining: number;
 }
 
-/** Compute the current rank and progress toward the next from a check-in count. */
 export function rankProgress(checkIns: number): RankProgress {
   const entry = RANK_LADDER[0];
-  // RANK_LADDER is a non-empty constant; guard for the type checker only.
   if (!entry) {
     return {
       current: { name: "SCOUT", checkInsRequired: 0 },
@@ -72,22 +56,13 @@ export function rankProgress(checkIns: number): RankProgress {
   return { current, next, fraction, remaining };
 }
 
-// ---- Streak calendar -------------------------------------------------------
-
-/** The month rendered by the streak calendar (mock). July 2026. */
 export const CALENDAR_YEAR = 2026;
-/** Zero-based month index. 6 = July. */
 export const CALENDAR_MONTH = 6;
-/** The day-of-month treated as "today" for the mock calendar. */
 export const CALENDAR_TODAY = 15;
-/** The current active streak length, in days (mock). */
 export const MOCK_STREAK_DAYS = 6;
-/** Days of the month with a recorded check-in (mock). */
 export const CHECK_IN_DAYS: readonly number[] = [
   2, 3, 5, 6, 8, 9, 10, 12, 13, 15,
 ];
-
-// ---- Leaderboards ----------------------------------------------------------
 
 export type LeaderboardScope = "ZONE" | "STATE" | "INDIA";
 
@@ -97,11 +72,9 @@ export interface LeaderboardEntry {
   readonly name: string;
   readonly zone: string;
   readonly checkIns: number;
-  /** True for the viewer's own row (pinned at the bottom). */
   readonly isViewer?: boolean;
 }
 
-/** The viewer's id, used to pin their own row across scopes. */
 export const VIEWER_ID = "you";
 
 const ZONE_BOARD: readonly LeaderboardEntry[] = [
@@ -166,21 +139,15 @@ export function leaderboardFor(scope: LeaderboardScope): readonly LeaderboardEnt
   }
 }
 
-/** Days left in the current leaderboard season (mock). */
 export const SEASON_DAYS_LEFT = 12;
-
-// ---- Territory wars --------------------------------------------------------
 
 export interface Territory {
   readonly id: string;
   readonly zone: string;
-  /** Aggregate check-ins the zone has logged this cycle. */
   readonly checkIns: number;
-  /** True for the viewer's home zone. */
   readonly isYours?: boolean;
 }
 
-/** Zones competing this cycle, richest first (mock). */
 export const TERRITORIES: readonly Territory[] = [
   { id: "t1", zone: "Andheri", checkIns: 4210 },
   { id: "t2", zone: "Bandra", checkIns: 3980, isYours: true },
@@ -189,14 +156,11 @@ export const TERRITORIES: readonly Territory[] = [
   { id: "t5", zone: "Dadar", checkIns: 2205 },
 ];
 
-// ---- Card gallery ----------------------------------------------------------
-
 export interface CollectibleCard {
   readonly id: string;
   readonly title: string;
   readonly detail: string;
   readonly earned: boolean;
-  /** Requirement copy shown for locked cards. */
   readonly requirement: string;
 }
 
@@ -245,7 +209,4 @@ export const CARDS: readonly CollectibleCard[] = [
   },
 ];
 
-// ---- Recruit ---------------------------------------------------------------
-
-/** The viewer's referral code (mock). */
 export const REFERRAL_CODE = "RAVI-4471";

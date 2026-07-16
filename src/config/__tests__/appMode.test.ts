@@ -1,10 +1,5 @@
 import { computeIsDemo, IS_DEMO } from "../appMode";
 
-/**
- * The mode decision is a pure function of the two build inputs, so it is tested
- * directly without touching process.env / expo-constants. The resolved module
- * constant is checked too: with no env set (the test/prod default) it is false.
- */
 describe("appMode.computeIsDemo", () => {
   it("is false when APP_ENV is 'production'", () => {
     expect(computeIsDemo("production", undefined)).toBe(false);

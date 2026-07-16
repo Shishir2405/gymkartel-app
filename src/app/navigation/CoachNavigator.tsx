@@ -20,7 +20,6 @@ import {
 const Tab = createBottomTabNavigator<CoachTabParamList>();
 const Stack = createNativeStackNavigator<CoachStackParamList>();
 
-/** Coach bottom tabs — same design language, coach-specific surface. */
 function CoachTabs() {
   return (
     <Tab.Navigator
@@ -89,7 +88,6 @@ function CoachTabs() {
   );
 }
 
-/** Coach root stack: tabs + pushed detail screens. */
 export function CoachNavigator() {
   return (
     <Stack.Navigator screenOptions={stackScreenOptions}>

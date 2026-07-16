@@ -21,11 +21,6 @@ import {
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
-/**
- * Trusted contact + SOS test. This is a safety screen, so it stays calm and
- * plain: no orange beyond the single Save button, quiet copy, one clear job.
- * The contact saved here is who we alert with live location during a session.
- */
 export function SosContactsScreen(_props: MemberScreenProps<"SosContacts">) {
   const sos = useSos();
   const toast = useToast();
@@ -34,7 +29,6 @@ export function SosContactsScreen(_props: MemberScreenProps<"SosContacts">) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  // Prefill from the saved trusted contact once it resolves.
   const saved = data?.trustedContact;
   useEffect(() => {
     if (saved) {

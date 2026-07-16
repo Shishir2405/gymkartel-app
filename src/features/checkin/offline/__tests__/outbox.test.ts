@@ -41,16 +41,13 @@ describe("outbox reducer", () => {
   });
 
   it("queues offline then flushes to synced online", () => {
-    // queue two while 'offline'
     let s = outboxReducer(emptyOutbox, { type: "ENQUEUE", item: makeNew("a", "2026-07-15T10:00:00.000Z") });
     s = outboxReducer(s, { type: "ENQUEUE", item: makeNew("b", "2026-07-15T10:05:00.000Z") });
     expect(pendingCount(s)).toBe(2);
 
-    // flush order is oldest-first
     const order = pendingItems(s).map((i) => i.idempotencyKey);
     expect(order).toEqual(["a", "b"]);
 
-    // come online: sync each
     for (const item of pendingItems(s)) {
       s = outboxReducer(s, { type: "BEGIN_SYNC", idempotencyKey: item.idempotencyKey });
       s = outboxReducer(s, { type: "SYNC_OK", idempotencyKey: item.idempotencyKey });
@@ -58,7 +55,6 @@ describe("outbox reducer", () => {
     expect(pendingCount(s)).toBe(0);
     expect(s.items.every((i) => i.status === "synced")).toBe(true);
 
-    // prune synced
     s = outboxReducer(s, { type: "PRUNE_SYNCED" });
     expect(s.items).toHaveLength(0);
   });
@@ -69,7 +65,6 @@ describe("outbox reducer", () => {
     s = outboxReducer(s, { type: "SYNC_FAIL", idempotencyKey: "a" });
     expect(s.items[0]?.status).toBe("pending");
     expect(s.items[0]?.attempts).toBe(1);
-    // still pending -> will be retried
     expect(pendingCount(s)).toBe(1);
   });
 

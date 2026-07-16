@@ -16,33 +16,22 @@ import {
 export interface GymMapMarker {
   id: string;
   name: string;
-  /** Optional explicit coordinate; wins over everything when provided. */
   coords?: LatLng;
-  /** Real wire `location` GeoPoint; preferred over the deterministic id hash. */
   location?: GeoPointLike | null;
 }
 
 export interface GymMapProps {
   markers: readonly GymMapMarker[];
-  /** The one gym painted in accent orange (one-orange-element rule). */
   selectedGymId?: string | null;
   onSelectMarker?: (gymId: string) => void;
-  /** Whole-map tap — used by the gym-page snippet to open the platform maps app. */
   onPressMap?: () => void;
   height?: number;
-  /** Pan/zoom enabled. Snippets pass false for a calm, static preview. */
   interactive?: boolean;
   center?: LatLng;
-  /** Body copy for the fallback placeholder when native maps are unavailable. */
   fallbackBody?: string;
   testID?: string;
 }
 
-/**
- * Lazily resolve react-native-maps so a plain JS / test / JSDOM environment
- * without the native module (or a build where the pod isn't linked) degrades to
- * the tasteful placeholder instead of crashing.
- */
 type MapsModule = typeof import("react-native-maps");
 function loadMaps(): MapsModule | null {
   try {
@@ -55,12 +44,6 @@ function loadMaps(): MapsModule | null {
 }
 const Maps = loadMaps();
 
-/**
- * A dark-styled gym map. Markers are muted dots; only the selected gym wears the
- * accent orange. Renders react-native-maps when the native module is present,
- * otherwise the existing calm placeholder — so the screen never crashes off a
- * missing native build.
- */
 export function GymMap({
   markers,
   selectedGymId,
@@ -72,13 +55,10 @@ export function GymMap({
   fallbackBody = "Map view is coming. Browse the list below for now — distances are from your zone.",
   testID,
 }: GymMapProps) {
-  // In a DEMO build we never mount the native MapView (so the APK needs no
-  // Google Maps key) — the tasteful placeholder stands in for the live map.
   if (IS_DEMO || !Maps) {
     const fallback = (
       <GymMapFallback height={height} body={fallbackBody} {...(testID ? { testID } : {})} />
     );
-    // Preserve the tap-to-open-maps affordance even without the native module.
     return onPressMap ? (
       <Pressable accessibilityRole="button" accessibilityLabel="Open in maps" onPress={onPressMap}>
         {fallback}
@@ -102,7 +82,6 @@ export function GymMap({
       style={[styles.map, { height }]}
       initialRegion={region}
       customMapStyle={darkMapStyle as unknown as MapStyleElement[]}
-      // Apple Maps (iOS default) reads the dark UI style; Google gets our JSON.
       provider={Platform.OS === "android" ? Maps.PROVIDER_GOOGLE : undefined}
       pitchEnabled={false}
       rotateEnabled={false}
@@ -133,7 +112,6 @@ export function GymMap({
     </MapView>
   );
 
-  // A non-interactive snippet is a big tap target that opens the platform maps app.
   if (!interactive && onPressMap) {
     return (
       <Pressable
@@ -152,7 +130,6 @@ export function GymMap({
   return <View style={[styles.snippet, { height }]}>{map}</View>;
 }
 
-/** The calm placeholder used when native maps aren't available. */
 export function GymMapFallback({
   height = 200,
   body,

@@ -6,10 +6,6 @@ import {
   GymsDocument,
 } from "@/graphql/generated/graphql";
 
-/**
- * A demo client wired with ONLY the demoExchange — no fetch/auth/subscription
- * exchange, so any result must have come from the local fixtures.
- */
 function demoClient(): Client {
   return new Client({ url: "http://demo.local/graphql", exchanges: [demoExchange] });
 }

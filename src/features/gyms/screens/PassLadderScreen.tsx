@@ -40,12 +40,6 @@ const TIER_NOTE: Record<Tier, string> = {
   PREMIUM: "one pass, every PREMIUM gym",
 };
 
-/**
- * The pass ladder (Flow 2). The viewer's tier is locked at the top — we never
- * show every tier at once. Rows: Day / 7 / 15 (MOST CHOSEN, emphasized) /
- * 30 (BEST RATE + 2× rank). The 7-day is the decoy: rendered plainly, no badge,
- * visibly worse per-day than the 15-day. Prices come only from the contract.
- */
 export function PassLadderScreen({ navigation }: MemberScreenProps<"PassLadder">) {
   const [{ data: viewerData, fetching: viewerFetching }] = useViewerQuery();
   const [{ data: ladderData }] = usePassLadderQuery();
@@ -65,7 +59,6 @@ export function PassLadderScreen({ navigation }: MemberScreenProps<"PassLadder">
         emphasized: r.emphasized,
       }));
     }
-    // Derive locally from the contract using the viewer's tier.
     return PASS_LADDER.map((r) => ({
       pack: r.pack,
       days: r.days,
@@ -112,7 +105,7 @@ export function PassLadderScreen({ navigation }: MemberScreenProps<"PassLadder">
     >
       <Text preset="title">Choose your Pass</Text>
 
-      {/* Viewer tier — locked at the top, never all tiers at once. */}
+      {}
       <Card padded style={styles.tierCard}>
         <Text preset="label" color="secondary">
           YOUR TIER

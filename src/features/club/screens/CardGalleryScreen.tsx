@@ -17,11 +17,6 @@ import {
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { CARDS, type CollectibleCard } from "@/features/club/data/mock";
 
-/**
- * Card gallery. A two-column grid of collectible cards. Earned cards read in
- * full; locked cards are frosted and greyed with a lock glyph. Tapping any card
- * opens a larger preview in a bottom sheet with its detail or unlock rule.
- */
 export function CardGalleryScreen(_props: MemberScreenProps<"CardGallery">) {
   const [active, setActive] = useState<CollectibleCard | null>(null);
   const earnedCount = CARDS.filter((c) => c.earned).length;

@@ -2,8 +2,6 @@ import { renderHook, act } from "@testing-library/react-native";
 import { useCheckIn } from "../useCheckIn";
 import { useOutboxStore } from "../../../../store/outboxStore";
 
-// The hook fire-and-forgets a SQLite write; stub the durable layer so the test
-// exercises only the in-memory enqueue + key handling (no native sqlite).
 jest.mock("../../offline/db", () => ({
   outboxDb: { enqueue: jest.fn(async () => undefined) },
 }));
@@ -27,7 +25,6 @@ describe("useCheckIn", () => {
       });
     });
 
-    // The queued item carries the SAME key the pre-scan top-up order used.
     expect(enqueued.item.idempotencyKey).toBe("shared_key_123");
     const items = useOutboxStore.getState().items;
     expect(items).toHaveLength(1);

@@ -12,13 +12,11 @@ const baseReq: CheckoutRequest = {
   description: "Gym Kartel pass",
 };
 
-/** A gateway whose single `open` call resolves or rejects with the given value. */
 function gateway(impl: RazorpayGateway["open"]): RazorpayGateway {
   return { open: jest.fn(impl) };
 }
 
 afterEach(() => {
-  // Reset so the next call re-probes (and other suites aren't affected).
   setRazorpayGatewayForTesting(undefined);
 });
 

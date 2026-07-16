@@ -23,12 +23,6 @@ const SEVERITIES: { key: Severity; label: string }[] = [
   { key: "SERIOUS", label: "Serious" },
 ];
 
-/**
- * Incident report. A serious moment, so the soft-dark theme is dropped for a
- * plain light human surface (white background, dark text) like the SOS overlay.
- * Restrained, factual, no decoration. The coach records what happened, when and
- * how serious, then submits.
- */
 export function CoachIncidentReportScreen({ navigation }: CoachScreenProps<"CoachIncidentReport">) {
   const { show } = useToast();
   const [{ fetching }, triggerSos] = useTriggerSosMutation();

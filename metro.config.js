@@ -1,5 +1,3 @@
-// Metro config for Gym Kartel. Extends Expo defaults and enables watching the
-// linked @gymkartel/contracts package outside the app root.
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 

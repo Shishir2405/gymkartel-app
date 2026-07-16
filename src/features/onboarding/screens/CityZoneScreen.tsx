@@ -23,7 +23,6 @@ interface ZoneOption {
   state: string;
 }
 
-/** UI options only — geography for the leaderboard, not pricing. */
 const ZONES: ZoneOption[] = [
   { zone: "Indiranagar", city: "Bengaluru", state: "Karnataka" },
   { zone: "Koramangala", city: "Bengaluru", state: "Karnataka" },
@@ -33,12 +32,6 @@ const ZONES: ZoneOption[] = [
   { zone: "Hauz Khas", city: "Delhi", state: "Delhi" },
 ];
 
-/**
- * City and zone. This is the finest grain of the leaderboard geography, so the
- * choice matters — but it is not money. A search field narrows the list; the
- * selected zone writes zone and state to the onboarding form. The last button
- * simply confirms: the auth gate already routes a signed-in member onward.
- */
 export function CityZoneScreen({ navigation }: AuthScreenProps<"CityZone">) {
   const zone = useOnboardingStore((s) => s.zone);
   const set = useOnboardingStore((s) => s.set);

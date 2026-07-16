@@ -2,7 +2,6 @@ import { DarkTheme, type Theme } from "@react-navigation/native";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { colors, fontFamily } from "../../ui";
 
-/** React Navigation container theme wired to the design tokens. */
 export const navigationTheme: Theme = {
   ...DarkTheme,
   colors: {
@@ -16,7 +15,6 @@ export const navigationTheme: Theme = {
   },
 };
 
-/** Default native-stack options: dark header, Inter title, 300ms slide. */
 export const stackScreenOptions: NativeStackNavigationOptions = {
   headerStyle: { backgroundColor: colors.bg.base },
   headerTintColor: colors.text.primary,

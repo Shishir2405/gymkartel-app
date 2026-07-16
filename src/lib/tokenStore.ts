@@ -1,9 +1,5 @@
 import * as SecureStore from "expo-secure-store";
 
-/**
- * Auth tokens live in the device keychain via expo-secure-store — never in
- * AsyncStorage, never in a Zustand store that could be serialized to disk.
- */
 const ACCESS = "gk.accessToken";
 const REFRESH = "gk.refreshToken";
 

@@ -18,11 +18,6 @@ import type { CoachTabScreenProps } from "@/app/navigation/types";
 import { toUiError } from "@/lib/errors";
 import { useCoachClientsQuery, type CoachClientRowFragment } from "@/graphql/generated/graphql";
 
-/**
- * The coach's client roster, live from `coachClients`. A search field filters by
- * name, each row opens the client detail. Empty state covers both "no clients
- * yet" and "no search match". Loading / error states preserved.
- */
 export function CoachClientsScreen({ navigation }: CoachTabScreenProps<"CoachClients">) {
   const [query, setQuery] = useState("");
   const [{ data, fetching, error }, refetch] = useCoachClientsQuery();

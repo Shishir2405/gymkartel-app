@@ -13,14 +13,6 @@ import { Text, useToast } from "../../../ui";
 import { useTriggerSosMutation, SosKind } from "../../../graphql/generated/graphql";
 import { toUiError } from "../../../lib/errors";
 
-/**
- * SOS is a SERIOUS moment — it drops the Soft-Dark Luxury theme entirely for a
- * plain, high-contrast, human overlay (golden rule 6). No orange branding, no
- * flourish. Three unmistakable actions.
- *
- * Exposed app-wide via context so the scanner, an active session and chat can
- * each mount the shield and open this overlay on a deliberate long-press.
- */
 interface SosApi {
   open: () => void;
   close: () => void;

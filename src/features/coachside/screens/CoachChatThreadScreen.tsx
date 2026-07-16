@@ -20,11 +20,6 @@ import type { CoachScreenProps } from "@/app/navigation/types";
 import { formatTime } from "@/lib/format";
 import { maskPii, threadSeed, type CoachChatMessage } from "@/features/coachside/lib/mock";
 
-/**
- * Coach chat thread. Every message is passed through maskPii on render, so phone
- * numbers and emails never surface even if typed. A quiet safety strip sits
- * under the header — keep it in-app, no side deals.
- */
 export function CoachChatThreadScreen({ navigation, route }: CoachScreenProps<"CoachChatThread">) {
   const { peerName } = route.params;
   const [messages, setMessages] = useState<CoachChatMessage[]>(() => threadSeed(peerName));
@@ -51,7 +46,7 @@ export function CoachChatThreadScreen({ navigation, route }: CoachScreenProps<"C
         </Text>
       </View>
 
-      {/* Safety strip */}
+      {}
       <View style={styles.safety}>
         <ShieldCheck size={14} color={colors.text.secondary} />
         <Text preset="label" color="secondary" style={{ marginLeft: 6, flex: 1 }}>

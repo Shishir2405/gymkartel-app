@@ -1,13 +1,6 @@
 import * as SQLite from "expo-sqlite";
 import type { OutboxItem, OutboxStatus } from "./outbox";
 
-/**
- * SQLite persistence for the check-in outbox — the ONLY place that touches the
- * outbox table. The durable source of truth; the in-memory store mirrors it.
- *
- * Writes are fire-and-forget from the UI's perspective: enqueue persists then
- * returns; the scan flow never awaits the network.
- */
 const DB_NAME = "gymkartel.db";
 
 let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;

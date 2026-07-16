@@ -1,14 +1,8 @@
-/**
- * Local mock data for the Ledger read screens (history + charts). There is no
- * server yet, so these stand in for the synced record. Kept plainly typed so a
- * real query can drop in later without touching the screens.
- */
 
 export interface HistorySet {
   sets: number;
   reps: number;
   weightKg: number;
-  /** ISO date of the session. */
   date: string;
 }
 
@@ -50,7 +44,6 @@ export interface MetricSeries {
   points: { date: string; value: number }[];
 }
 
-/** Estimated 1RM for bench, session over session. */
 export const MOCK_BENCH_1RM: MetricSeries = {
   label: "Bench 1RM",
   unit: "kg",
@@ -64,7 +57,6 @@ export const MOCK_BENCH_1RM: MetricSeries = {
   ],
 };
 
-/** Bodyweight trend. */
 export const MOCK_BODYWEIGHT: MetricSeries = {
   label: "Bodyweight",
   unit: "kg",

@@ -10,12 +10,6 @@ import {
   type SyncCheckInMutationVariables,
 } from "../../../graphql/generated/graphql";
 
-/**
- * Drives outbox sync. Hydrates from SQLite on mount, then flushes whenever the
- * device is online (and on an interval as a safety net). Uses the urql client
- * imperatively to run the SyncCheckIn mutation, which is idempotent on
- * idempotencyKey server-side — so a retried offline scan collapses to one.
- */
 export function useOutboxSync() {
   const client = useClient();
   const isOnline = useUiStore((s) => s.isOnline);
@@ -24,7 +18,6 @@ export function useOutboxSync() {
   const markFailed = useOutboxStore((s) => s.markFailed);
   const running = useRef(false);
 
-  // Hydrate the in-memory mirror from the durable SQLite table once.
   useEffect(() => {
     void outboxDb.all().then(hydrate);
   }, [hydrate]);
@@ -68,7 +61,6 @@ export function useOutboxSync() {
     }
   }, [isOnline, syncOne, markSynced, markFailed]);
 
-  // Flush on connectivity regained and periodically.
   useEffect(() => {
     if (isOnline) void flush();
   }, [isOnline, flush]);

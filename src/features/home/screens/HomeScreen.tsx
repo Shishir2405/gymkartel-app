@@ -20,11 +20,6 @@ import { greeting, formatDistance, busyLabel } from "../../../lib/format";
 import { useHome } from "../hooks/useHome";
 import { PassHeroCard, NoPassHeroCard } from "../components/PassHero";
 
-/**
- * Home. Avatar top-left, bell top-right, a time-of-day greeting, then the HERO
- * pass card that swaps between has-pass and no-pass. The no-pass state is the
- * only one that carries the single orange button. Everything else is quiet.
- */
 export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
   const { viewer, gyms, nextBooking, fetching, error } = useHome();
 
@@ -80,7 +75,7 @@ export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
           </View>
         )}
 
-        {/* Next booking strip */}
+        {}
         {nextBooking ? (
           <PressableRow
             onPress={() =>
@@ -98,7 +93,7 @@ export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
           </PressableRow>
         ) : null}
 
-        {/* Twin action cards */}
+        {}
         <View style={styles.twin}>
           <TwinCard
             icon={<Barbell size={24} color={colors.text.primary} />}
@@ -112,7 +107,7 @@ export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
           />
         </View>
 
-        {/* Nearby gyms carousel */}
+        {}
         <SectionHeader
           title="Nearby gyms"
           actionLabel="See all"
@@ -158,7 +153,7 @@ export function HomeScreen({ navigation }: MemberTabScreenProps<"Home">) {
           </ScrollView>
         )}
 
-        {/* The Count ticker */}
+        {}
         <PressableRow onPress={() => navigation.navigate("TheCount")}>
           <Card padded style={styles.count}>
             <Text preset="label" color="secondary">

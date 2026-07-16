@@ -8,12 +8,6 @@ import { Text } from "./Text";
 import type { PhosphorIcon } from "./Icon";
 import { haptics } from "../../lib/haptics";
 
-/**
- * The five-tab bar. It is a soft raised neumorphic surface. Check-in is the
- * center, raised circle — the biggest target. The ACTIVE tab is the single
- * orange element on the bar (fill-weight icon + orange). Everything else is
- * grey, regular weight. Icons are flat, never neumorphic.
- */
 const TAB_ICON: Record<string, PhosphorIcon> = {
   Home: House,
   Gyms: MapPin,

@@ -8,19 +8,12 @@ export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Mayb
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-/** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string; }
   String: { input: string; output: string; }
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /**
-   * Gym Kartel GraphQL contract — the single wire boundary between backend and app.
-   * This file is the source of truth: the backend generates typed resolvers from it,
-   * the app runs GraphQL Code Generator against it for typed hooks. Breaking changes
-   * are gated by graphql-inspector in CI and a @gymkartel/contracts major bump.
-   */
   DateTime: { input: string; output: string; }
 };
 
@@ -73,11 +66,9 @@ export type ChatMessage = {
   id: Scalars['ID']['output'];
   masked: Scalars['Boolean']['output'];
   sentAt: Scalars['DateTime']['output'];
-  /** Phone/UPI/links are masked in BOTH directions before storage (product rule). */
   text: Scalars['String']['output'];
 };
 
-/** One inbox row per booking whose chat has unlocked (post-booking only). */
 export type ChatThread = {
   __typename?: 'ChatThread';
   bookingId: Scalars['ID']['output'];
@@ -102,7 +93,6 @@ export type Coach = {
   __typename?: 'Coach';
   badge: Maybe<Scalars['String']['output']>;
   bio: Scalars['String']['output'];
-  /** Uploaded credentials + their verification status (coach profile editor). */
   certifications: Array<CoachCertification>;
   displayName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -110,7 +100,6 @@ export type Coach = {
   ratingAverage: Maybe<Scalars['Float']['output']>;
   sessionsCompleted: Scalars['Int']['output'];
   specialties: Array<Scalars['String']['output']>;
-  /** Lowest tier this coach accepts bookings from. */
   tierFloor: Maybe<Tier>;
   transformationPhotoUrls: Array<Scalars['String']['output']>;
   verified: Scalars['Boolean']['output'];
@@ -133,7 +122,6 @@ export type CoachClient = {
 
 export type CoachDashboard = {
   __typename?: 'CoachDashboard';
-  /** Take-home earnings preview across confirmed bookings (T+2 payout). */
   earningsPaise: Scalars['Int']['output'];
   pendingRequests: Array<Booking>;
   ratingAverage: Maybe<Scalars['Float']['output']>;
@@ -149,10 +137,6 @@ export type CoachEarnings = {
   takeHomePaise: Scalars['Int']['output'];
 };
 
-/**
- * Review-and-pay for a coach session (Flow 5): reserves the slot and creates the
- * Razorpay order priced at the coach's pricePerSession.
- */
 export type CreateBookingOrderInput = {
   coachId: Scalars['ID']['input'];
   gymId: Scalars['ID']['input'];
@@ -163,12 +147,6 @@ export type CreatePassOrderInput = {
   pack: PassPack;
 };
 
-/**
- * Create the Razorpay order for the tier top-up delta BEFORE confirming a scan
- * (Flow 4). Identify the gym by id (map/detail entry) or by scanned check-in code
- * (scanner entry). Reuses the same order the scan would create, keyed on
- * `idempotencyKey`, so paying here and later confirming the scan stay idempotent.
- */
 export type CreateTopUpOrderInput = {
   gymCheckInCode?: InputMaybe<Scalars['String']['input']>;
   gymId?: InputMaybe<Scalars['ID']['input']>;
@@ -199,7 +177,6 @@ export type Gym = {
   distanceMeters: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   liveBusyFraction: Maybe<Scalars['Float']['output']>;
-  /** Map marker coordinates, mapped from the gym's stored GeoJSON point. */
   location: Maybe<GeoPoint>;
   name: Scalars['String']['output'];
   photoUrls: Array<Scalars['String']['output']>;
@@ -228,10 +205,8 @@ export type Leaderboard = {
   __typename?: 'Leaderboard';
   page: Array<LeaderboardEntry>;
   scopeKey: Scalars['String']['output'];
-  /** IST month key (YYYY-MM) — the season boundary. */
   season: Scalars['String']['output'];
   segment: LeaderboardSegment;
-  /** Sticky self-row, present only when the viewer falls outside the page. */
   self: Maybe<LeaderboardEntry>;
 };
 
@@ -267,10 +242,8 @@ export type LocationShare = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Reserve a coach slot + create its Razorpay order (review & pay, Flow 5). */
   createBookingOrder: RazorpayOrder;
   createPassOrder: RazorpayOrder;
-  /** Open UPI checkout for a tier top-up before confirming the scan (Flow 4). */
   createTopUpOrder: RazorpayOrder;
   logWorkout: Array<LedgerEntry>;
   markNotificationRead: Scalars['Boolean']['output'];
@@ -280,63 +253,51 @@ export type Mutation = {
   sendMessage: ChatMessage;
   setTrustedContact: Scalars['Boolean']['output'];
   shareLocation: LocationShare;
-  /** Sync one (possibly offline-queued) check-in. Idempotent on idempotencyKey. */
   syncCheckIn: SyncCheckInResult;
   triggerSos: Incident;
   verifyOtp: AuthTokens;
 };
 
-
 export type MutationCreateBookingOrderArgs = {
   input: CreateBookingOrderInput;
 };
-
 
 export type MutationCreatePassOrderArgs = {
   input: CreatePassOrderInput;
 };
 
-
 export type MutationCreateTopUpOrderArgs = {
   input: CreateTopUpOrderInput;
 };
-
 
 export type MutationLogWorkoutArgs = {
   text: Scalars['String']['input'];
 };
 
-
 export type MutationMarkNotificationReadArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type MutationRefreshSessionArgs = {
   refreshToken: Scalars['String']['input'];
 };
 
-
 export type MutationRegisterPushTokenArgs = {
   token: Scalars['String']['input'];
 };
 
-
 export type MutationRequestOtpArgs = {
   input: RequestOtpInput;
 };
-
 
 export type MutationSendMessageArgs = {
   bookingId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
 };
 
-
 export type MutationSetTrustedContactArgs = {
   input: SetTrustedContactInput;
 };
-
 
 export type MutationShareLocationArgs = {
   bookingId: Scalars['ID']['input'];
@@ -344,16 +305,13 @@ export type MutationShareLocationArgs = {
   lng: Scalars['Float']['input'];
 };
 
-
 export type MutationSyncCheckInArgs = {
   input: SyncCheckInInput;
 };
 
-
 export type MutationTriggerSosArgs = {
   input: TriggerSosInput;
 };
-
 
 export type MutationVerifyOtpArgs = {
   input: VerifyOtpInput;
@@ -407,7 +365,6 @@ export enum PassStatus {
 export type Query = {
   __typename?: 'Query';
   bookings: Array<Booking>;
-  /** Inbox: one thread per booking whose chat has unlocked. */
   chatInbox: Array<ChatThread>;
   chatThread: Array<ChatMessage>;
   checkInHistory: Array<CheckIn>;
@@ -417,20 +374,16 @@ export type Query = {
   coachClients: Array<CoachClient>;
   coachDashboard: CoachDashboard;
   coachEarnings: CoachEarnings;
-  /** The signed-in coach's own profile (bio, specialties, cert status). */
   coachProfile: Coach;
   coaches: Array<Coach>;
   featureFlags: Array<FeatureFlag>;
   gym: Maybe<Gym>;
-  /** Nearby gyms in the viewer's tier; peekOtherTiers surfaces the rest. */
   gyms: Array<Gym>;
   incidents: Array<Incident>;
-  /** scopeKey defaults from the viewer (zone/state); INDIA needs none. */
   leaderboard: Leaderboard;
   ledgerHistory: Array<LedgerEntry>;
   ledgerToday: Array<LedgerEntry>;
   notifications: Array<AppNotification>;
-  /** Pass ladder for the viewer's tier only — never all tiers at once (Flow 2). */
   passLadder: Array<PassLadderRow>;
   rankCard: RankCard;
   streakCalendar: StreakCalendar;
@@ -439,26 +392,21 @@ export type Query = {
   viewer: Maybe<Viewer>;
 };
 
-
 export type QueryChatThreadArgs = {
   bookingId: Scalars['ID']['input'];
 };
-
 
 export type QueryCheckInHistoryArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
-
 export type QueryCoachArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type QueryCoachClientArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type QueryCoachesArgs = {
   femaleOnly?: InputMaybe<Scalars['Boolean']['input']>;
@@ -466,24 +414,20 @@ export type QueryCoachesArgs = {
   specialty?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryGymArgs = {
   id: Scalars['ID']['input'];
 };
-
 
 export type QueryGymsArgs = {
   peekOtherTiers?: InputMaybe<Scalars['Boolean']['input']>;
   zone?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryLeaderboardArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   scopeKey?: InputMaybe<Scalars['String']['input']>;
   segment: LeaderboardSegment;
 };
-
 
 export type QueryLedgerHistoryArgs = {
   exercise?: InputMaybe<Scalars['String']['input']>;
@@ -495,7 +439,6 @@ export type RankCard = {
   label: Scalars['String']['output'];
   next: Maybe<Scalars['String']['output']>;
   streakWeeks: Scalars['Int']['output'];
-  /** Public ladder so a member sees exactly what the next rank needs. */
   thresholds: Array<RankThreshold>;
   weeksToNext: Maybe<Scalars['Int']['output']>;
 };
@@ -533,7 +476,6 @@ export type Streak = {
   __typename?: 'Streak';
   bonusDaysEarned: Scalars['Int']['output'];
   current: Scalars['Int']['output'];
-  /** Days remaining in the current 7-day window before the streak is at risk. */
   windowDaysLeft: Scalars['Int']['output'];
 };
 
@@ -541,7 +483,6 @@ export type StreakCalendar = {
   __typename?: 'StreakCalendar';
   alive: Scalars['Boolean']['output'];
   bonusDaysEarned: Scalars['Int']['output'];
-  /** Distinct check-in instants for the calendar heatmap. */
   days: Array<Scalars['DateTime']['output']>;
   daysThisWindow: Scalars['Int']['output'];
   weeks: Scalars['Int']['output'];
@@ -550,10 +491,8 @@ export type StreakCalendar = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  /** Live chat messages for a booking thread (PII already masked at send). */
   messageReceived: ChatMessage;
 };
-
 
 export type SubscriptionMessageReceivedArgs = {
   bookingId: Scalars['ID']['input'];
@@ -566,7 +505,6 @@ export type SyncCheckInInput = {
   scannedAt: Scalars['DateTime']['input'];
 };
 
-/** Result of a scan: either checked in, or a top-up is required first (Flow 4). */
 export type SyncCheckInResult = {
   __typename?: 'SyncCheckInResult';
   checkIn: Maybe<CheckIn>;
@@ -626,7 +564,6 @@ export type Viewer = {
   zone: Scalars['String']['output'];
 };
 
-/** A parsed chip. `uncertain` renders an amber "?" — the parser never guesses. */
 export type WorkoutChip = {
   __typename?: 'WorkoutChip';
   distanceKm: Maybe<Scalars['Float']['output']>;
@@ -651,7 +588,6 @@ export type BookingRowFragment = { __typename?: 'Booking', id: string, scheduled
 
 export type BookingsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type BookingsQuery = { __typename?: 'Query', bookings: Array<{ __typename?: 'Booking', id: string, scheduledFor: string, pricePaise: number, status: BookingStatus, insured: boolean, chatUnlocked: boolean, coach: { __typename?: 'Coach', id: string, displayName: string, verified: boolean, badge: string | null }, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } }> };
 
 export type ChatMessageRowFragment = { __typename?: 'ChatMessage', id: string, bookingId: string, from: string, text: string, masked: boolean, sentAt: string };
@@ -660,13 +596,11 @@ export type ChatThreadRowFragment = { __typename?: 'ChatThread', bookingId: stri
 
 export type ChatInboxQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type ChatInboxQuery = { __typename?: 'Query', chatInbox: Array<{ __typename?: 'ChatThread', bookingId: string, chatUnlocked: boolean, coach: { __typename?: 'Coach', id: string, displayName: string, verified: boolean, badge: string | null }, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier }, lastMessage: { __typename?: 'ChatMessage', id: string, bookingId: string, from: string, text: string, masked: boolean, sentAt: string } | null }> };
 
 export type ChatThreadQueryVariables = Exact<{
   bookingId: Scalars['ID']['input'];
 }>;
-
 
 export type ChatThreadQuery = { __typename?: 'Query', chatThread: Array<{ __typename?: 'ChatMessage', id: string, bookingId: string, from: string, text: string, masked: boolean, sentAt: string }> };
 
@@ -674,7 +608,6 @@ export type SendMessageMutationVariables = Exact<{
   bookingId: Scalars['ID']['input'];
   text: Scalars['String']['input'];
 }>;
-
 
 export type SendMessageMutation = { __typename?: 'Mutation', sendMessage: { __typename?: 'ChatMessage', id: string, bookingId: string, from: string, text: string, masked: boolean, sentAt: string } };
 
@@ -684,13 +617,11 @@ export type ShareLocationMutationVariables = Exact<{
   lng: Scalars['Float']['input'];
 }>;
 
-
 export type ShareLocationMutation = { __typename?: 'Mutation', shareLocation: { __typename?: 'LocationShare', expiresAt: string } };
 
 export type MessageReceivedSubscriptionVariables = Exact<{
   bookingId: Scalars['ID']['input'];
 }>;
-
 
 export type MessageReceivedSubscription = { __typename?: 'Subscription', messageReceived: { __typename?: 'ChatMessage', id: string, bookingId: string, from: string, text: string, masked: boolean, sentAt: string } };
 
@@ -699,7 +630,6 @@ export type CheckInRowFragment = { __typename?: 'CheckIn', id: string, gymTier: 
 export type CheckInHistoryQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
-
 
 export type CheckInHistoryQuery = { __typename?: 'Query', checkInHistory: Array<{ __typename?: 'CheckIn', id: string, gymTier: Tier, passTier: Tier, scannedAt: string, dayNumber: number, topUpAmountPaise: number | null, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } }> };
 
@@ -711,16 +641,13 @@ export type CoachProfilePartsFragment = { __typename?: 'Coach', id: string, disp
 
 export type CoachDashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type CoachDashboardQuery = { __typename?: 'Query', coachDashboard: { __typename?: 'CoachDashboard', ratingAverage: number | null, sessionsCompleted: number, earningsPaise: number, todaysSessions: Array<{ __typename?: 'Booking', id: string, scheduledFor: string, pricePaise: number, status: BookingStatus, insured: boolean, chatUnlocked: boolean, coach: { __typename?: 'Coach', id: string, displayName: string }, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } }>, pendingRequests: Array<{ __typename?: 'Booking', id: string, scheduledFor: string, pricePaise: number, status: BookingStatus, insured: boolean, chatUnlocked: boolean, coach: { __typename?: 'Coach', id: string, displayName: string }, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } }> } };
 
 export type CoachCalendarQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type CoachCalendarQuery = { __typename?: 'Query', coachCalendar: Array<{ __typename?: 'Booking', id: string, scheduledFor: string, pricePaise: number, status: BookingStatus, insured: boolean, chatUnlocked: boolean, coach: { __typename?: 'Coach', id: string, displayName: string }, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } }> };
 
 export type CoachClientsQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type CoachClientsQuery = { __typename?: 'Query', coachClients: Array<{ __typename?: 'CoachClient', id: string, name: string, avatarUrl: string | null, sessions: number }> };
 
@@ -728,16 +655,13 @@ export type CoachClientQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
-
 export type CoachClientQuery = { __typename?: 'Query', coachClient: { __typename?: 'CoachClient', id: string, name: string, avatarUrl: string | null, sessions: number } | null };
 
 export type CoachEarningsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type CoachEarningsQuery = { __typename?: 'Query', coachEarnings: { __typename?: 'CoachEarnings', grossPaise: number, takeHomePaise: number, payoutSchedule: string, estimatedTdsPaise: number } };
 
 export type CoachProfileQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type CoachProfileQuery = { __typename?: 'Query', coachProfile: { __typename?: 'Coach', id: string, displayName: string, verified: boolean, badge: string | null, bio: string, specialties: Array<string>, pricePerSessionPaise: number, ratingAverage: number | null, sessionsCompleted: number, tierFloor: Tier | null, certifications: Array<{ __typename?: 'CoachCertification', title: string, issuer: string, status: CertificationStatus }> } };
 
@@ -751,18 +675,15 @@ export type CoachesQueryVariables = Exact<{
   maxPricePaise?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
-
 export type CoachesQuery = { __typename?: 'Query', coaches: Array<{ __typename?: 'Coach', id: string, displayName: string, verified: boolean, badge: string | null, specialties: Array<string>, pricePerSessionPaise: number, ratingAverage: number | null, sessionsCompleted: number }> };
 
 export type CoachQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
-
 export type CoachQuery = { __typename?: 'Query', coach: { __typename?: 'Coach', bio: string, transformationPhotoUrls: Array<string>, id: string, displayName: string, verified: boolean, badge: string | null, specialties: Array<string>, pricePerSessionPaise: number, ratingAverage: number | null, sessionsCompleted: number } | null };
 
 export type FeatureFlagsQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type FeatureFlagsQuery = { __typename?: 'Query', featureFlags: Array<{ __typename?: 'FeatureFlag', key: string, enabled: boolean }> };
 
@@ -773,13 +694,11 @@ export type GymsQueryVariables = Exact<{
   peekOtherTiers?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
-
 export type GymsQuery = { __typename?: 'Query', gyms: Array<{ __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null }> };
 
 export type GymQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
-
 
 export type GymQuery = { __typename?: 'Query', gym: { __typename?: 'Gym', id: string, name: string, tier: Tier, zone: string, address: string, distanceMeters: number | null, amenities: Array<string>, photoUrls: Array<string>, rating: number | null, liveBusyFraction: number | null, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null } | null };
 
@@ -791,7 +710,6 @@ export type LeaderboardQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
-
 export type LeaderboardQuery = { __typename?: 'Query', leaderboard: { __typename?: 'Leaderboard', segment: LeaderboardSegment, scopeKey: string, season: string, page: Array<{ __typename?: 'LeaderboardEntry', userId: string, displayName: string, streak: number, totalCheckIns: number, position: number, isSelf: boolean }>, self: { __typename?: 'LeaderboardEntry', userId: string, displayName: string, streak: number, totalCheckIns: number, position: number, isSelf: boolean } | null } };
 
 export type WorkoutChipPartsFragment = { __typename?: 'WorkoutChip', kind: WorkoutKind, exercise: string | null, sets: number | null, reps: number | null, weightKg: number | null, distanceKm: number | null, durationMin: number | null, uncertain: boolean, note: string | null, raw: string };
@@ -800,13 +718,11 @@ export type LedgerEntryRowFragment = { __typename?: 'LedgerEntry', id: string, i
 
 export type LedgerTodayQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type LedgerTodayQuery = { __typename?: 'Query', ledgerToday: Array<{ __typename?: 'LedgerEntry', id: string, isPR: boolean, loggedByCoach: boolean, loggedAt: string, chip: { __typename?: 'WorkoutChip', kind: WorkoutKind, exercise: string | null, sets: number | null, reps: number | null, weightKg: number | null, distanceKm: number | null, durationMin: number | null, uncertain: boolean, note: string | null, raw: string } }> };
 
 export type LedgerHistoryQueryVariables = Exact<{
   exercise?: InputMaybe<Scalars['String']['input']>;
 }>;
-
 
 export type LedgerHistoryQuery = { __typename?: 'Query', ledgerHistory: Array<{ __typename?: 'LedgerEntry', id: string, isPR: boolean, loggedByCoach: boolean, loggedAt: string, chip: { __typename?: 'WorkoutChip', kind: WorkoutKind, exercise: string | null, sets: number | null, reps: number | null, weightKg: number | null, distanceKm: number | null, durationMin: number | null, uncertain: boolean, note: string | null, raw: string } }> };
 
@@ -814,13 +730,11 @@ export type LogWorkoutMutationVariables = Exact<{
   text: Scalars['String']['input'];
 }>;
 
-
 export type LogWorkoutMutation = { __typename?: 'Mutation', logWorkout: Array<{ __typename?: 'LedgerEntry', id: string, isPR: boolean, loggedByCoach: boolean, loggedAt: string, chip: { __typename?: 'WorkoutChip', kind: WorkoutKind, exercise: string | null, sets: number | null, reps: number | null, weightKg: number | null, distanceKm: number | null, durationMin: number | null, uncertain: boolean, note: string | null, raw: string } }> };
 
 export type RequestOtpMutationVariables = Exact<{
   input: RequestOtpInput;
 }>;
-
 
 export type RequestOtpMutation = { __typename?: 'Mutation', requestOtp: boolean };
 
@@ -828,13 +742,11 @@ export type VerifyOtpMutationVariables = Exact<{
   input: VerifyOtpInput;
 }>;
 
-
 export type VerifyOtpMutation = { __typename?: 'Mutation', verifyOtp: { __typename?: 'AuthTokens', accessToken: string, refreshToken: string } };
 
 export type RefreshSessionMutationVariables = Exact<{
   refreshToken: Scalars['String']['input'];
 }>;
-
 
 export type RefreshSessionMutation = { __typename?: 'Mutation', refreshSession: { __typename?: 'AuthTokens', accessToken: string, refreshToken: string } };
 
@@ -842,13 +754,11 @@ export type SyncCheckInMutationVariables = Exact<{
   input: SyncCheckInInput;
 }>;
 
-
 export type SyncCheckInMutation = { __typename?: 'Mutation', syncCheckIn: { __typename?: 'SyncCheckInResult', checkIn: { __typename?: 'CheckIn', id: string, gymTier: Tier, passTier: Tier, scannedAt: string, dayNumber: number, topUpAmountPaise: number | null, gym: { __typename?: 'Gym', id: string, name: string, tier: Tier } } | null, topUpRequired: { __typename?: 'TopUpRequired', gymTier: Tier, amountPaise: number, razorpayOrderId: string } | null } };
 
 export type CreatePassOrderMutationVariables = Exact<{
   input: CreatePassOrderInput;
 }>;
-
 
 export type CreatePassOrderMutation = { __typename?: 'Mutation', createPassOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
 
@@ -856,13 +766,11 @@ export type CreateTopUpOrderMutationVariables = Exact<{
   input: CreateTopUpOrderInput;
 }>;
 
-
 export type CreateTopUpOrderMutation = { __typename?: 'Mutation', createTopUpOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
 
 export type CreateBookingOrderMutationVariables = Exact<{
   input: CreateBookingOrderInput;
 }>;
-
 
 export type CreateBookingOrderMutation = { __typename?: 'Mutation', createBookingOrder: { __typename?: 'RazorpayOrder', orderId: string, amountPaise: number, currency: string } };
 
@@ -870,13 +778,11 @@ export type NotificationRowFragment = { __typename?: 'AppNotification', id: stri
 
 export type NotificationsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type NotificationsQuery = { __typename?: 'Query', notifications: Array<{ __typename?: 'AppNotification', id: string, kind: NotificationKind, title: string, body: string, read: boolean, createdAt: string }> };
 
 export type MarkNotificationReadMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
-
 
 export type MarkNotificationReadMutation = { __typename?: 'Mutation', markNotificationRead: boolean };
 
@@ -884,11 +790,9 @@ export type RegisterPushTokenMutationVariables = Exact<{
   token: Scalars['String']['input'];
 }>;
 
-
 export type RegisterPushTokenMutation = { __typename?: 'Mutation', registerPushToken: boolean };
 
 export type PassLadderQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type PassLadderQuery = { __typename?: 'Query', passLadder: Array<{ __typename?: 'PassLadderRow', pack: PassPack, days: number, pricePaise: number, perDayPaise: number, badge: string | null, rankMultiplier: number | null, emphasized: boolean }> };
 
@@ -896,11 +800,9 @@ export type IncidentRowFragment = { __typename?: 'Incident', id: string, kind: S
 
 export type IncidentsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type IncidentsQuery = { __typename?: 'Query', incidents: Array<{ __typename?: 'Incident', id: string, kind: SosKind, note: string, status: IncidentStatus, createdAt: string, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null }> };
 
 export type TrustedContactQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type TrustedContactQuery = { __typename?: 'Query', trustedContact: { __typename?: 'TrustedContact', name: string, phone: string } | null };
 
@@ -908,33 +810,27 @@ export type TriggerSosMutationVariables = Exact<{
   input: TriggerSosInput;
 }>;
 
-
 export type TriggerSosMutation = { __typename?: 'Mutation', triggerSos: { __typename?: 'Incident', id: string, kind: SosKind, note: string, status: IncidentStatus, createdAt: string, location: { __typename?: 'GeoPoint', lat: number, lng: number } | null } };
 
 export type SetTrustedContactMutationVariables = Exact<{
   input: SetTrustedContactInput;
 }>;
 
-
 export type SetTrustedContactMutation = { __typename?: 'Mutation', setTrustedContact: boolean };
 
 export type RankCardQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type RankCardQuery = { __typename?: 'Query', rankCard: { __typename?: 'RankCard', current: string, label: string, next: string | null, weeksToNext: number | null, streakWeeks: number, thresholds: Array<{ __typename?: 'RankThreshold', key: string, label: string, minWeeks: number }> } };
 
 export type StreakCalendarQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type StreakCalendarQuery = { __typename?: 'Query', streakCalendar: { __typename?: 'StreakCalendar', weeks: number, alive: boolean, daysThisWindow: number, windowDaysLeft: number, bonusDaysEarned: number, days: Array<string> } };
 
 export type ViewerQueryVariables = Exact<{ [key: string]: never; }>;
 
-
 export type ViewerQuery = { __typename?: 'Query', viewer: { __typename?: 'Viewer', id: string, name: string, avatarUrl: string | null, tier: Tier, zone: string, role: UserRole, streak: { __typename?: 'Streak', current: number, windowDaysLeft: number, bonusDaysEarned: number }, activePass: { __typename?: 'Pass', id: string, tier: Tier, pack: PassPack, daysTotal: number, daysUsed: number, bonusDays: number, daysLeft: number, validUntil: string, status: PassStatus } | null } | null };
 
 export type VersionGateQueryVariables = Exact<{ [key: string]: never; }>;
-
 
 export type VersionGateQuery = { __typename?: 'Query', versionGate: { __typename?: 'VersionGate', latestVersion: string, minSupportedVersion: string } };
 

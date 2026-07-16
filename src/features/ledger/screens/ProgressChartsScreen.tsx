@@ -23,16 +23,11 @@ interface MetricSeries {
   points: { date: string; value: number }[];
 }
 
-/** ISO -> "15 Jul" for tight axis labels. */
 function shortDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
-/**
- * Turn the ledger history into per-exercise weight-progression series. Only
- * weighted sets count, oldest -> newest, and a trend needs at least two points.
- */
 function seriesFromHistory(entries: readonly LedgerEntryRowFragment[]): MetricSeries[] {
   const map = new Map<string, LedgerEntryRowFragment[]>();
   for (const entry of entries) {
@@ -55,11 +50,6 @@ function seriesFromHistory(entries: readonly LedgerEntryRowFragment[]): MetricSe
   return out;
 }
 
-/**
- * Progress at a glance, drawn from `ledgerHistory`. No chart library — bars are
- * plain Views scaled by value, hairline axis, and the orange is spent only on
- * the latest bar of each metric. Loading / empty / error states preserved.
- */
 export function ProgressChartsScreen(_props: MemberScreenProps<"ProgressCharts">) {
   const [{ data, fetching, error }, refetch] = useLedgerHistoryQuery();
   const uiError = toUiError(error);

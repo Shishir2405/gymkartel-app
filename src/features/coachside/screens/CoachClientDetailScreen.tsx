@@ -35,13 +35,6 @@ const HISTORY = [
   { id: "h3", title: "Intake and assessment", dayOffset: -14 },
 ];
 
-/**
- * Client detail. Identity (name, session count) is live from `coachClient`.
- * Four sections follow: log a session, past history, consented photos, and
- * coach-only private notes saved locally — these coaching tools have no server
- * surface yet, so they stay on-device. The photos section always carries the
- * consent line so it is clear these are shown with the client's permission.
- */
 export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<"CoachClientDetail">) {
   const { clientId } = route.params;
   const { show } = useToast();
@@ -92,7 +85,7 @@ export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Identity */}
+        {}
         <View style={styles.identity}>
           <Avatar uri={client.avatarUrl ?? undefined} name={client.name} size={64} />
           <View style={{ marginLeft: spacing.md, flex: 1 }}>
@@ -103,7 +96,7 @@ export function CoachClientDetailScreen({ navigation, route }: CoachScreenProps<
           </View>
         </View>
 
-        {/* Segmented control */}
+        {}
         <View style={styles.segment}>
           {SECTIONS.map((s) => {
             const on = s.key === section;

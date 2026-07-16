@@ -7,16 +7,10 @@ export interface ChipProps {
   label: string;
   selected?: boolean;
   onPress?: () => void;
-  /** Amber "?" uncertainty chip for the workout parser — never a silent guess. */
   uncertain?: boolean;
   testID?: string;
 }
 
-/**
- * Selectable chip / toggle. Selected = inset surface + 1.5px orange stroke +
- * orange text (the design system's selection signature). Uncertain parser chips
- * carry an amber "?" and an amber stroke instead.
- */
 export function Chip({ label, selected = false, onPress, uncertain = false, testID }: ChipProps) {
   return (
     <Pressable testID={testID} onPress={onPress} accessibilityRole="button">

@@ -4,13 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, colors, radius, spacing } from "@/ui";
 import { IS_DEMO } from "@/config/appMode";
 
-/**
- * A small, low-prominence "DEMO" pill pinned to the top of the app, rendered app-
- * wide ONLY in a demo build. Deliberately quiet — secondary text on a raised
- * surface (never the accent orange, which is reserved for the one primary action
- * per screen) — so the build is unmistakably a demo yet never fights the UI. It
- * is non-interactive (`pointerEvents="none"`) and returns null in production.
- */
 export function DemoBadge() {
   const insets = useSafeAreaInsets();
   if (!IS_DEMO) return null;

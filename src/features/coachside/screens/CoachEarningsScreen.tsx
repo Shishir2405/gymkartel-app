@@ -16,12 +16,6 @@ import { formatRupees } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { useCoachEarningsQuery } from "@/graphql/generated/graphql";
 
-/**
- * Earnings. The take-home total is the Barlow hero, live from `coachEarnings`.
- * Below it, a plain tax-summary card lays out gross, the 20% platform fee, the
- * 80% take-home, and the estimated TDS set-aside. Nothing decorative — the coach
- * needs to trust these numbers. The payout cadence (e.g. T+2) is server-stated.
- */
 export function CoachEarningsScreen(_props: CoachTabScreenProps<"CoachEarnings">) {
   const [{ data, fetching, error }, refetch] = useCoachEarningsQuery();
   const uiError = toUiError(error);

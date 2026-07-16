@@ -13,7 +13,6 @@ describe("ProgressLineChart", () => {
   it("renders the real chart when there are at least two points", () => {
     const { getByTestId } = render(<ProgressLineChart points={SAMPLE} unit="kg" />);
     expect(getByTestId("progress-line-chart")).toBeTruthy();
-    // The gifted-charts LineChart is mocked to a testable native stub.
     expect(getByTestId("line-chart-native")).toBeTruthy();
   });
 

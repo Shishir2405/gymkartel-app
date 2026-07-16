@@ -6,19 +6,13 @@ import { colors, spacing } from "../tokens";
 export interface ScreenProps {
   children: React.ReactNode;
   scroll?: boolean;
-  /** Adds the standard 24px horizontal screen margin. */
   padded?: boolean;
   edges?: readonly Edge[];
-  /** Content pinned to the bottom (e.g. the one primary button). */
   footer?: React.ReactNode;
   contentStyle?: ViewStyle;
   testID?: string;
 }
 
-/**
- * Screen frame: base background, safe-area, standard margins, optional scroll,
- * and a footer slot for the single bottom primary action (golden rule 2).
- */
 export function Screen({
   children,
   scroll = false,

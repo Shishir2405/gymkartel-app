@@ -32,18 +32,12 @@ import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 import { openCheckout } from "@/lib/payments";
 
-/** The UPI methods offered. */
 const UPI_METHODS = [
   { id: "gpay", label: "Google Pay", handle: "you@okhdfcbank" },
   { id: "phonepe", label: "PhonePe", handle: "you@ybl" },
   { id: "paytm", label: "Paytm UPI", handle: "you@paytm" },
 ];
 
-/**
- * Review and pay. A calm summary of the session, an insurance reassurance line,
- * and UPI method rows. The one orange action pays. A plain payment-failed state
- * offers a straight retry — no theme flourish on a money error.
- */
 export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"ReviewPay">) {
   const { coachId, slotIso, gymId } = route.params;
   const [{ data: coachData, fetching: coachFetching, error: coachError }] = useCoachQuery({
@@ -93,7 +87,6 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
     setFailed(false);
     setPaying(true);
     try {
-      // Reserve the slot + create its Razorpay order on the server first.
       let orderId: string | null = null;
       try {
         const created = await createBookingOrder({
@@ -105,8 +98,6 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
         }
         orderId = created.data?.createBookingOrder.orderId ?? null;
       } catch {
-        // No server in this workspace — proceed with a null order; the wrapper's
-        // unavailable path keeps the flow usable without native.
       }
 
       const outcome = await openCheckout({
@@ -122,7 +113,6 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
       if (outcome.status === "cancelled") {
         return;
       }
-      // success or unavailable → proceed; the server confirms via webhook.
       navigation.navigate("BookingConfirmed", { bookingId: coachId });
     } finally {
       setPaying(false);
@@ -159,7 +149,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
         Review and pay
       </Text>
 
-      {/* Summary */}
+      {}
       <Card padded>
         <View style={styles.coachRow}>
           <Avatar name={coach.displayName} size={44} />
@@ -192,7 +182,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
         </View>
       </Card>
 
-      {/* Insurance */}
+      {}
       <View style={styles.insurance}>
         <ShieldCheck size={18} color={colors.support.positive} />
         <Text preset="body" color="secondary" style={styles.insuranceText}>
@@ -200,7 +190,7 @@ export function ReviewPayScreen({ navigation, route }: MemberScreenProps<"Review
         </Text>
       </View>
 
-      {/* UPI methods */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         PAY WITH UPI
       </Text>

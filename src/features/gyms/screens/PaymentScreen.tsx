@@ -30,13 +30,6 @@ const UPI_METHODS: ReadonlyArray<{ id: string; label: string }> = [
   { id: "other", label: "Other UPI app" },
 ];
 
-/**
- * UPI payment sheet. Handles two shapes of param: a pass purchase ({ pack }) or
- * a check-in top-up ({ topUpForCheckIn, amountPaise }). The amount is computed
- * from the contract for a pass, or taken directly for a top-up. The create-order
- * mutation is best-effort (there is no server yet); a plain failed state offers
- * a serious, un-themed retry.
- */
 export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment">) {
   const params = route.params;
   const isTopUp = "topUpForCheckIn" in params;
@@ -60,7 +53,6 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
     setFailed(false);
     setPaying(true);
     try {
-      // Pass purchase: create the Razorpay order on the server first.
       let orderId: string | null = null;
       if (!isTopUp && pack) {
         try {
@@ -73,12 +65,9 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
           }
           orderId = result.data?.createPassOrder.orderId ?? null;
         } catch {
-          // No server in this workspace — proceed with a null order; the
-          // wrapper's unavailable path keeps the flow usable without native.
         }
       }
 
-      // Open the real UPI checkout (or the graceful unavailable path).
       const outcome = await openCheckout({
         orderId,
         amountPaise,
@@ -91,11 +80,8 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
         return;
       }
       if (outcome.status === "cancelled") {
-        // Member dismissed the sheet — stay put, no error theatre.
         return;
       }
-      // success OR unavailable: proceed. The server reconciles the real payment
-      // via webhook; client success only means "await confirmation".
       if (!isTopUp && pack) {
         navigation.navigate("PurchaseSuccess", { pack });
       } else {
@@ -107,7 +93,6 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
   };
 
   if (failed) {
-    // Serious moment: the theme drops to a plain, high-contrast light surface.
     return (
       <SafeAreaView style={styles.seriousRoot}>
         <View style={styles.seriousBody}>
@@ -153,7 +138,7 @@ export function PaymentScreen({ navigation, route }: MemberScreenProps<"Payment"
     >
       <Text preset="title">{isTopUp ? "Top up to check in" : "Pay for your Pass"}</Text>
 
-      {/* Amount summary */}
+      {}
       <Card padded style={styles.amountCard}>
         <Text preset="label" color="secondary">
           AMOUNT DUE

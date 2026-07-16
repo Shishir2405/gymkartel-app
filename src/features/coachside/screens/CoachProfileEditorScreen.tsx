@@ -23,13 +23,6 @@ import { toUiError } from "@/lib/errors";
 import { COACH_TAKE_RATE } from "@gymkartel/contracts";
 import { MOCK_SPECIALTIES } from "@/features/coachside/lib/mock";
 
-/**
- * Coach profile editor. Display name, bio, specialty chips and price are
- * pre-filled from `coachProfile`. The price field carries a LIVE take-home
- * preview via COACH_TAKE_RATE (sourced from @gymkartel/contracts) so the coach
- * always sees what they keep. Certifications are read-only status rows straight
- * from the server (`certifications` with their verification status).
- */
 export function CoachProfileEditorScreen({ navigation }: CoachScreenProps<"CoachProfileEditor">) {
   const [{ data, fetching, error }, refetch] = useCoachProfileQuery();
   const { show } = useToast();
@@ -80,8 +73,6 @@ function ProfileForm({
   const [selected, setSelected] = useState<string[]>(profile.specialties);
   const [priceText, setPriceText] = useState(String(Math.round(profile.pricePerSessionPaise / 100)));
 
-  // Option catalog: the coach's own specialties plus the standard set. There is
-  // no catalog query in the contract yet, so the standard set stays local.
   const options = useMemo(() => {
     const set = new Set<string>([...profile.specialties, ...MOCK_SPECIALTIES]);
     return Array.from(set);
@@ -102,7 +93,7 @@ function ProfileForm({
 
       <Text preset="title">Edit profile</Text>
 
-      {/* Display name */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         DISPLAY NAME
       </Text>
@@ -114,7 +105,7 @@ function ProfileForm({
         style={styles.input}
       />
 
-      {/* Bio */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         BIO
       </Text>
@@ -127,7 +118,7 @@ function ProfileForm({
         multiline
       />
 
-      {/* Specialties */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         SPECIALTIES
       </Text>
@@ -137,7 +128,7 @@ function ProfileForm({
         ))}
       </View>
 
-      {/* Price with live take-home preview */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         PRICE PER SESSION
       </Text>
@@ -163,7 +154,7 @@ function ProfileForm({
         </Text>
       </Card>
 
-      {/* Certifications */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         CERTIFICATIONS
       </Text>

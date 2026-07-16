@@ -37,14 +37,6 @@ import { haptics } from "@/lib/haptics";
 import { SosShield } from "@/features/system/components/SosShield";
 import { maskPii } from "../lib/mask";
 
-/**
- * Chat thread. Messages come live from `chatThread`, new ones arrive over the
- * `messageReceived` subscription, and sends go through `sendMessage`. EVERY
- * message body is rendered through `maskPii` (over the server-side masking), so
- * phone numbers, emails and links are hidden in both directions. The SOS shield
- * sits top-right; a location affordance and the safety strip keep the
- * on-platform guarantees visible. A locked booking shows a plain locked state.
- */
 export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatThread">) {
   const { bookingId, peerName } = route.params;
   const [{ data: bookingsData }] = useBookingsQuery();
@@ -54,7 +46,6 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
   });
   const [, sendMessage] = useSendMessageMutation();
 
-  // Live messages: on each incoming message, refresh the thread from network.
   useMessageReceivedSubscription({ variables: { bookingId } }, (_prev, incoming) => {
     refetchThread({ requestPolicy: "network-only" });
     return incoming;
@@ -62,13 +53,10 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
 
   const viewerId = viewerData?.viewer?.id ?? null;
 
-  // Only a booking we can positively see AND is not unlocked is treated as
-  // locked; unknown bookings (no server / entered from a profile) stay usable.
   const booking = bookingsData?.bookings.find((b) => b.id === bookingId);
   const locked = booking != null && !booking.chatUnlocked;
 
   const messages = useMemo(() => threadData?.chatThread ?? [], [threadData?.chatThread]);
-  // Inverted list renders newest at the bottom.
   const ordered = useMemo(() => [...messages].reverse(), [messages]);
 
   const [draft, setDraft] = useState("");
@@ -119,7 +107,7 @@ export function ChatThreadScreen({ navigation, route }: MemberScreenProps<"ChatT
     <View style={styles.root} testID="chat-thread">
       {header}
 
-      {/* Safety strip */}
+      {}
       <View style={styles.strip} testID="chat.safety-strip">
         <EyeSlash size={14} color={colors.text.secondary} />
         <Text preset="body" color="secondary" style={styles.stripText}>

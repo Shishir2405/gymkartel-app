@@ -23,10 +23,8 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ] as const;
 
-/** Build a Monday-first grid of cells for a month. Null cells pad the lead-in. */
 function buildMonthCells(year: number, month: number): readonly (number | null)[] {
   const first = new Date(year, month, 1);
-  // JS getDay: 0 = Sunday. Shift so Monday = 0.
   const lead = (first.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells: (number | null)[] = [];
@@ -36,12 +34,6 @@ function buildMonthCells(year: number, month: number): readonly (number | null)[
   return cells;
 }
 
-/**
- * Streak calendar. The month grid marks recorded check-in days from the
- * server's `streakCalendar.days`, today carries the only orange (the active
- * flame), the streak rule is stated plainly, and the current streak (in weeks)
- * is shown in Barlow. Loading / empty / error states preserved.
- */
 export function StreakCalendarScreen(_props: MemberScreenProps<"StreakCalendar">) {
   const [{ data, fetching, error }, refetch] = useStreakCalendarQuery();
   const uiError = toUiError(error);
@@ -54,7 +46,6 @@ export function StreakCalendarScreen(_props: MemberScreenProps<"StreakCalendar">
   const monthName = MONTH_NAMES[month] ?? "";
   const cells = buildMonthCells(year, month);
 
-  // Days of the current display month that have a recorded check-in.
   const checkedIn = new Set<number>();
   for (const iso of cal?.days ?? []) {
     const d = new Date(iso);

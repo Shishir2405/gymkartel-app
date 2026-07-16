@@ -14,18 +14,11 @@ import { haptics } from "../../lib/haptics";
 import { motion } from "../tokens";
 
 export interface SealStampProps {
-  /** Gym name stamped into the seal. */
   label: string;
-  /** Fires once the stamp lands (for chaining share-card reveal). */
   onStamped?: () => void;
   size?: number;
 }
 
-/**
- * THE signature animation. The check-in seal STAMPS in over 450ms — it starts
- * oversized and rotated, slams down to rest scale, and fires one HEAVY haptic on
- * impact. This is one of only two moments the app spends polish on. Reanimated 3.
- */
 export function SealStamp({ label, onStamped, size = 180 }: SealStampProps) {
   const scale = useSharedValue(2.4);
   const rotate = useSharedValue(-18);

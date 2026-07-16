@@ -25,11 +25,6 @@ import type { MemberScreenProps } from "@/app/navigation/types";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { NavRow, ToggleRow } from "../components/Rows";
 
-/**
- * Settings + legal. Two local toggles, a role switch, plain legal rows, and a
- * sign-out that always routes through a confirm whose safe primary keeps the
- * user signed in — the destructive action sits at the top of that sheet.
- */
 export function SettingsScreen(_props: MemberScreenProps<"Settings">) {
   const { setRole, signOut } = useAuth();
   const toast = useToast();

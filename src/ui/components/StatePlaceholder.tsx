@@ -5,22 +5,15 @@ import { Text } from "./Text";
 import { Button } from "./Button";
 
 export interface StatePlaceholderProps {
-  /** The icon glyph, passed as a node so screens use phosphor icons directly. */
   icon?: React.ReactNode;
   title: string;
   body?: string;
-  /** Primary action — rendered as the one orange button when present. */
   actionLabel?: string;
   onAction?: () => void;
   variant?: "empty" | "error" | "offline";
   testID?: string;
 }
 
-/**
- * The shared empty / error / offline placeholder. Copy stays plain and human;
- * no exclamation marks, no emojis. When an action is present it is THE single
- * orange button for the screen.
- */
 export function StatePlaceholder({
   icon,
   title,

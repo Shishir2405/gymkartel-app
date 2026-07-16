@@ -4,11 +4,6 @@ import { CaretRight } from "phosphor-react-native";
 import { Text, PressableRow, Divider, colors, spacing } from "@/ui";
 import type { PhosphorIcon } from "@/ui";
 
-/**
- * Shared profile list rows. NavRow pushes to another screen; ToggleRow flips a
- * local setting. Both live on the plain dark surface — no orange, no flourish.
- */
-
 export function NavRow({
   icon,
   label,
@@ -93,7 +88,6 @@ export function ToggleRow({
   );
 }
 
-/** Thin separator sized to sit between rows inside a Card. */
 export function RowDivider() {
   return <Divider style={styles.divider} />;
 }

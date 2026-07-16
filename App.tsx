@@ -8,11 +8,6 @@ import { colors } from "./src/ui";
 
 void SplashScreen.preventAutoHideAsync();
 
-/**
- * Gym Kartel root. Loads the two type families, mounts every provider, then the
- * gated navigator. We hold the native splash until fonts are ready so the big
- * Barlow figures never flash a fallback.
- */
 export default function App() {
   const fontsLoaded = useAppFonts();
 

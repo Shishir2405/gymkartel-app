@@ -5,11 +5,6 @@ import { colors, spacing, typePresets } from "../tokens";
 import { Text } from "../components/Text";
 import { Card } from "../components/Card";
 
-/**
- * The token library as a visual catalog: the exact color swatches and the type
- * scale. Use this to confirm the Soft-Dark Luxury palette and that numbers are
- * Barlow while everything else is Inter.
- */
 function TokenLibrary() {
   const swatches: { name: string; value: string; locked?: string }[] = [
     { name: "bg/base", value: colors.bg.base },

@@ -20,12 +20,6 @@ import { toUiError } from "@/lib/errors";
 import { CoachCard } from "../components/CoachCard";
 import { useCoachFilters } from "../hooks/useCoachFilters";
 
-/**
- * Coach browse — a two-column grid of coaches. Price is UPFRONT on every card.
- * Filters live behind a quiet secondary button; the selection is applied to the
- * query variables (specialty / femaleOnly / maxPrice) and, for rating, to the
- * list client-side.
- */
 export function CoachBrowseScreen({ navigation }: MemberScreenProps<"CoachBrowse">) {
   const { specialty, maxPricePaise, femaleOnly, minRating } = useCoachFilters();
 

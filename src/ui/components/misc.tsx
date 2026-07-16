@@ -3,12 +3,10 @@ import { Image, Pressable, StyleSheet, View, type ViewStyle } from "react-native
 import { colors, radius, spacing } from "../tokens";
 import { Text } from "./Text";
 
-/** Hairline divider. */
 export function Divider({ style }: { style?: ViewStyle }) {
   return <View style={[styles.divider, style]} />;
 }
 
-/** Circular avatar; falls back to an initial on the raised surface. */
 export function Avatar({
   uri,
   name,
@@ -41,13 +39,12 @@ export function Avatar({
   );
 }
 
-/** Thin progress bar (rank progress, live-busy meter). Accent-filled track. */
 export function ProgressBar({
   value,
   tone = "accent",
   height = 8,
 }: {
-  value: number; // 0..1
+  value: number;
   tone?: "accent" | "neutral";
   height?: number;
 }) {
@@ -66,7 +63,6 @@ export function ProgressBar({
   );
 }
 
-/** Section header with an optional trailing action. */
 export function SectionHeader({
   title,
   actionLabel,
@@ -92,7 +88,6 @@ export function SectionHeader({
   );
 }
 
-/** Row with pressable feedback for list items. */
 export function PressableRow({
   children,
   onPress,
@@ -102,7 +97,6 @@ export function PressableRow({
   children: React.ReactNode;
   onPress?: () => void;
   style?: ViewStyle;
-  /** Stable e2e selector (Maestro/Detox). See .maestro/README.md. */
   testID?: string;
 }) {
   return (

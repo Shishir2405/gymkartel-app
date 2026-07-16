@@ -27,12 +27,6 @@ import { useViewerQuery, useLedgerTodayQuery, type LedgerEntryRowFragment } from
 import { ProgressLineChart } from "@/features/ledger/components/ProgressLineChart";
 import { MOCK_BENCH_1RM } from "@/features/ledger/data/mockLedger";
 
-/**
- * The Ledger "Today". Two lives: without a Pass the record is sealed — a
- * believable Ledger renders behind an expo-blur frost with a single way in.
- * With a Pass it opens to today's logged sets (live from `ledgerToday`), a way
- * to log more, and links into the deeper record (history, progress, photos).
- */
 export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
   const [viewer] = useViewerQuery();
   const [today] = useLedgerTodayQuery();
@@ -123,7 +117,6 @@ export function TodayScreen({ navigation }: MemberTabScreenProps<"Track">) {
   );
 }
 
-/** One logged set. Amber "?" marks a chip the parser was unsure of. */
 export function LedgerRow({ entry }: { entry: LedgerEntryRowFragment }) {
   const { chip } = entry;
   return (
@@ -180,16 +173,11 @@ function LinkRow({
   );
 }
 
-/**
- * The sealed state. A believable Ledger renders underneath, then a frost blur
- * closes over it so the numbers read as "there, but not yours yet". The figures
- * here are a deliberate teaser, not the viewer's record.
- */
 function LockedLedger({ onGetPass }: { onGetPass: () => void }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
       <View style={styles.lockRoot}>
-        {/* Real-looking record behind the frost. */}
+        {}
         <View style={styles.pad} pointerEvents="none">
           <Text preset="title" style={styles.heading}>
             Today
@@ -222,11 +210,11 @@ function LockedLedger({ onGetPass }: { onGetPass: () => void }) {
           </View>
         </View>
 
-        {/* Frost. */}
+        {}
         <BlurView intensity={38} tint="dark" style={StyleSheet.absoluteFill} />
         <View style={[StyleSheet.absoluteFill, styles.frostTint]} pointerEvents="none" />
 
-        {/* Copy + the one way in. */}
+        {}
         <View style={styles.lockContent}>
           <Lock size={40} color={colors.text.secondary} weight="regular" />
           <Text preset="title" align="center" style={styles.lockTitle}>
@@ -278,7 +266,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     backgroundColor: colors.bg.base,
   },
-  // Locked
   lockRoot: { flex: 1 },
   fakeTwin: { flexDirection: "row", gap: spacing.md, marginTop: spacing.md },
   fakeTwinCard: { flex: 1 },

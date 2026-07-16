@@ -15,12 +15,6 @@ import {
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { TERRITORIES, type Territory } from "@/features/club/data/mock";
 
-/**
- * Territory wars. Each zone shows a contribution meter built from its aggregate
- * check-ins, scaled against the current leader. The viewer's home zone is
- * highlighted and its meter carries the single orange fill; every other meter
- * stays neutral. Plain copy explains how a zone wins territory.
- */
 export function TerritoryWarsScreen(_props: MemberScreenProps<"TerritoryWars">) {
   const leader = TERRITORIES.reduce((max, t) => Math.max(max, t.checkIns), 0);
 

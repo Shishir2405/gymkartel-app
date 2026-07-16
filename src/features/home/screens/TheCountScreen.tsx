@@ -13,11 +13,6 @@ import type { MemberScreenProps } from "../../../app/navigation/types";
 import { useViewerQuery, useCheckInHistoryQuery } from "../../../graphql/generated/graphql";
 import { formatDate } from "../../../lib/format";
 
-/**
- * The Count detail. The lifetime record: total check-ins, current streak, and a
- * plain list of recent entries. The big figures are Barlow Condensed; the copy
- * stays factual ("First entry writes the record").
- */
 export function TheCountScreen(_props: MemberScreenProps<"TheCount">) {
   const [viewer] = useViewerQuery();
   const [history] = useCheckInHistoryQuery({ variables: { limit: 30 } });

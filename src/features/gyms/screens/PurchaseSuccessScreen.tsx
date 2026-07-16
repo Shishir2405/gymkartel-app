@@ -5,11 +5,6 @@ import { PASS_PACK_DAYS, type PassPack } from "@gymkartel/contracts";
 import { Screen, Text, Button, colors, spacing } from "@/ui";
 import type { MemberScreenProps } from "@/app/navigation/types";
 
-/**
- * Calm purchase confirmation. No confetti — a single quiet tick, the day count
- * in Barlow, and the validity-window promise. The one orange button carries the
- * member into the club (the tabs).
- */
 export function PurchaseSuccessScreen({ navigation, route }: MemberScreenProps<"PurchaseSuccess">) {
   const { pack } = route.params;
   const days = PASS_PACK_DAYS[pack as PassPack] ?? null;

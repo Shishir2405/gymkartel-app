@@ -12,13 +12,6 @@ import {
 import { ShareCard } from "../components/ShareCard";
 import type { MemberScreenProps } from "../../../app/navigation/types";
 
-/**
- * THE moment. Polish is spent here (one of only two places). The seal STAMPS in
- * over 450ms with one heavy haptic, then the record — gym, DAY count, streak,
- * rank, date — settles beneath it. The share card exports at 1080x1920 for
- * stories. Primary action (Share) is the single orange button; Customise / Done
- * are ghosts.
- */
 export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"CheckInSuccess">) {
   const { gymName, dayNumber, streak, rank, date } = route.params;
   const [revealed, setRevealed] = useState(false);
@@ -34,7 +27,6 @@ export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"C
       });
       await Share.share({ url: uri, message: `Day ${dayNumber} at ${gymName}. The record stands.` });
     } catch {
-      // Sharing cancelled or unavailable — stay on screen, no error theatre.
     }
   };
 
@@ -85,7 +77,7 @@ export function CheckInSuccessScreen({ navigation, route }: MemberScreenProps<"C
         </View>
       </View>
 
-      {/* Off-screen render target for the 1080x1920 export. */}
+      {}
       <View style={styles.offscreen} pointerEvents="none">
         <View collapsable={false} ref={cardRef}>
           <ShareCard

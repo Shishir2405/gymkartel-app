@@ -12,12 +12,6 @@ import { MemberNavigator } from "./MemberNavigator";
 import { CoachNavigator } from "./CoachNavigator";
 import { HardUpdateGate, SoftUpdatePrompt } from "../../features/system";
 
-/**
- * Top-level gates, applied in order:
- *  1. Version gate — hard gate blocks the whole app; soft prompt overlays it.
- *  2. Auth gate — signed out -> onboarding; signed in -> the app.
- *  3. Role switch — member vs coach experience (same design system).
- */
 export function RootNavigator() {
   const { status, role } = useAuth();
   const { decision } = useVersionGate();

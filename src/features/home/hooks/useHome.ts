@@ -1,9 +1,5 @@
 import { useViewerQuery, useGymsQuery, useBookingsQuery } from "../../../graphql/generated/graphql";
 
-/**
- * Home aggregates viewer + nearby gyms + upcoming bookings from the urql cache.
- * No server state is copied into a store — the cache is the source of truth.
- */
 export function useHome() {
   const [viewer] = useViewerQuery();
   const [gyms] = useGymsQuery({ variables: {} });

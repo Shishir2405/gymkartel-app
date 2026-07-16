@@ -18,12 +18,6 @@ import { toUiError } from "@/lib/errors";
 import { formatTime } from "@/lib/format";
 import { maskPii } from "../lib/mask";
 
-/**
- * Chat inbox — one thread per booking that has unlocked chat, from `chatInbox`.
- * The last-message preview is masked on render (belt-and-suspenders over the
- * server-side masking), so PII never leaks even in the list. When nothing is
- * unlocked, the empty state explains the gate.
- */
 export function ChatInboxScreen({ navigation }: MemberScreenProps<"ChatInbox">) {
   const [{ data, fetching, error }, refetch] = useChatInboxQuery();
   const uiError = toUiError(error);

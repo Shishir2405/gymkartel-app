@@ -12,12 +12,6 @@ import {
 } from "phosphor-react-native";
 import type { PhosphorIcon } from "@/ui";
 
-/**
- * The nine amenities a gym can advertise (mirrors the contract `Amenity` enum),
- * each mapped to a phosphor glyph and a plain human label. Gym amenities arrive
- * from GraphQL as `string[]`, so lookups accept any string and fall back to a
- * neutral sparkle for anything unknown.
- */
 export const AMENITY_ORDER = [
   "PARKING",
   "SHOWERS",
@@ -56,12 +50,10 @@ const LABELS: Record<Amenity, string> = {
   PT_AVAILABLE: "PT available",
 };
 
-/** Phosphor glyph for an amenity code (falls back to a neutral sparkle). */
 export function useAmenityIcon(amenity: string): PhosphorIcon {
   return ICONS[amenity as Amenity] ?? Sparkle;
 }
 
-/** Plain human label for an amenity code (title-cases anything unknown). */
 export function amenityLabel(amenity: string): string {
   return (
     LABELS[amenity as Amenity] ??

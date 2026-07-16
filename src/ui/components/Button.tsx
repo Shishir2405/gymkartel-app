@@ -23,24 +23,11 @@ export interface ButtonProps {
   variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
-  /** Icon rendered before the label (flat, never neumorphic). */
   icon?: React.ReactNode;
   fullWidth?: boolean;
   testID?: string;
 }
 
-/**
- * The four button variants, each with rest / pressed / disabled states.
- *
- * PRIMARY — the ONE orange element allowed per screen: flat blood-orange fill,
- *   off-white text, radius 16, height 56, soft orange glow. On press it darkens
- *   to #A93226, the glow collapses, it sinks in and scales to 0.98 with a light
- *   haptic. Lives full-width at the bottom of the screen.
- * SECONDARY — raised neumorphic pill, hairline stroke; sinks to #111113 pressed.
- * GHOST — grey text only; brightens on press.
- * DESTRUCTIVE — red-orange text; placement (top of sheet) + confirm dialog are
- *   the caller's responsibility.
- */
 export function Button({
   label,
   onPress,
@@ -70,7 +57,7 @@ export function Button({
       return {
         transform: [{ scale }],
         backgroundColor: pressed.value > 0.5 ? colors.accent.pressed : colors.accent.primary,
-        shadowOpacity: 0.45 * (1 - pressed.value), // glow collapses on press
+        shadowOpacity: 0.45 * (1 - pressed.value),
       };
     }
     return { transform: [{ scale }] };

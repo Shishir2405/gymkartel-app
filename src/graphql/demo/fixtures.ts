@@ -1,21 +1,3 @@
-/**
- * Demo fixtures — the "mock data everywhere" layer.
- *
- * Every GraphQL operation the app runs (see `src/graphql/operations/*.graphql`)
- * has an entry in `demoFixtures` below, keyed by the operation's NAME. In demo
- * mode `demoExchange` resolves each operation against this map and returns
- * `{ data }` with NO network. The data is realistic + on-brand so a client can
- * click through every screen offline.
- *
- * Shape correctness is enforced by the compiler: each resolver returns a value
- * annotated (via `satisfies`) with the matching generated `*Query`/`*Mutation`
- * type, so a missing or wrong field fails `tsc` rather than surfacing as a blank
- * screen at runtime. Nested entities (gyms/coaches) come from typed superset
- * records so one gym or coach can satisfy several different field selections.
- *
- * Prices come from `@gymkartel/contracts` (the single source of truth) — never
- * hand-typed rupees.
- */
 import {
   Tier,
   PassPack,
@@ -83,7 +65,6 @@ import {
 import { parseWorkout } from "@/features/ledger/parser/workoutParser";
 import { maskPii } from "@/features/chat/lib/mask";
 
-// --- time helpers (computed once at module load; stable for the session) ----
 const NOW = Date.now();
 const MIN = 60_000;
 const HOUR = 60 * MIN;
@@ -93,15 +74,8 @@ const iso = (ms: number): string => new Date(ms).toISOString();
 type Vars = Record<string, unknown>;
 const str = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
 
-// The signed-in demo member.
 const VIEWER_ID = "user_ravi";
 const VIEWER_NAME = "Ravi Menon";
-
-// ---------------------------------------------------------------------------
-// Superset entity records — one object can satisfy every field selection the
-// app makes of that type (graphcache normalises them by id). Defined as named
-// consts (never array-index access) so they read as non-undefined everywhere.
-// ---------------------------------------------------------------------------
 
 interface DemoGym {
   __typename: "Gym";
@@ -287,7 +261,6 @@ const COACH_SANA: DemoCoach = {
 
 export const DEMO_COACHES: DemoCoach[] = [COACH_ARJUN, COACH_NEHA, COACH_SANA];
 
-// Bookings the demo member holds (confirmed upcoming + a completed one).
 interface DemoBooking {
   id: string;
   coach: DemoCoach;
@@ -322,7 +295,6 @@ const DEMO_BOOKINGS: DemoBooking[] = [
   },
 ];
 
-// A short, on-brand chat thread with the PII mask already applied in-fixture.
 const MSG_1: ChatMessageRowFragment = {
   __typename: "ChatMessage",
   id: "msg_1",
@@ -346,7 +318,6 @@ const MSG_3: ChatMessageRowFragment = {
   id: "msg_3",
   bookingId: "booking_1",
   from: "coach_arjun",
-  // Off-platform contact details are masked in-fixture (masked: true).
   text: "A banana and coffee is fine. Reach me on ••• if you're running late.",
   masked: true,
   sentAt: iso(NOW - 2 * HOUR),
@@ -375,10 +346,6 @@ const CLIENT_3: CoachClientRowFragment = {
   sessions: 22,
 };
 const DEMO_CLIENTS: CoachClientRowFragment[] = [CLIENT_1, CLIENT_2, CLIENT_3];
-
-// ---------------------------------------------------------------------------
-// Small builders reused across resolvers.
-// ---------------------------------------------------------------------------
 
 const PACK_ENUM: Record<ContractPassPack, PassPack> = {
   SINGLE_DAY: PassPack.SingleDay,
@@ -443,7 +410,6 @@ function razorpayOrder(amountPaise: number): {
   };
 }
 
-// A few pre-parsed ledger entries. One PR, one amber "uncertain" chip.
 const LEDGER_PR: LedgerEntryRowFragment = {
   __typename: "LedgerEntry",
   id: "ledger_1",
@@ -490,7 +456,6 @@ const LEDGER_UNCERTAIN: LedgerEntryRowFragment = {
   isPR: false,
   loggedByCoach: false,
   loggedAt: iso(NOW - 70 * MIN),
-  // Deliberately ambiguous -> amber "?" chip.
   chip: chipFromText("some rows heavy-ish"),
 };
 const LEDGER_DEADLIFT: LedgerEntryRowFragment = {
@@ -571,14 +536,9 @@ function leaderboardPage(selfPosition: number): LeaderboardQuery["leaderboard"][
   });
 }
 
-// ---------------------------------------------------------------------------
-// The fixture map — one resolver per operation NAME.
-// ---------------------------------------------------------------------------
-
 export type DemoResolver = (variables: Vars) => Record<string, unknown>;
 
 export const demoFixtures: Record<string, DemoResolver> = {
-  // ----- Session / gating -----
   Viewer: () =>
     ({
       viewer: {
@@ -615,13 +575,11 @@ export const demoFixtures: Record<string, DemoResolver> = {
     ({
       versionGate: {
         __typename: "VersionGate",
-        // latest == current (0.1.0) so no update gate blocks the demo.
         latestVersion: "0.1.0",
         minSupportedVersion: "0.1.0",
       },
     }) satisfies VersionGateQuery,
 
-  // ----- Gyms -----
   Gyms: () => ({ gyms: DEMO_GYMS }) satisfies GymsQuery,
   Gym: (v) => {
     const id = str(v.id);
@@ -642,7 +600,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
       })),
     }) satisfies PassLadderQuery,
 
-  // ----- Coaches -----
   Coaches: (v) => {
     const specialty = str(v.specialty)?.toLowerCase();
     const femaleOnly = v.femaleOnly === true;
@@ -666,7 +623,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
     return { coach: DEMO_COACHES.find((c) => c.id === id) ?? COACH_ARJUN } satisfies CoachQuery;
   },
 
-  // ----- Bookings & check-ins -----
   Bookings: () =>
     ({
       bookings: DEMO_BOOKINGS.map((b) => ({
@@ -718,7 +674,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
       ],
     }) satisfies CheckInHistoryQuery,
 
-  // ----- Chat -----
   ChatInbox: () =>
     ({
       chatInbox: DEMO_BOOKINGS.map((b) => ({
@@ -739,7 +694,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
     } satisfies ChatThreadQuery;
   },
 
-  // ----- Ledger -----
   LedgerToday: () => ({ ledgerToday: LEDGER_TODAY }) satisfies LedgerTodayQuery,
   LedgerHistory: (v) => {
     const exercise = str(v.exercise)?.toLowerCase();
@@ -751,7 +705,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
     return { ledgerHistory: rows } satisfies LedgerHistoryQuery;
   },
 
-  // ----- Leaderboards / ranks / streak -----
   Leaderboard: (v) => {
     const segment =
       v.segment === LeaderboardSegment.State
@@ -759,8 +712,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
         : v.segment === LeaderboardSegment.India
           ? LeaderboardSegment.India
           : LeaderboardSegment.Zone;
-    // The viewer sits mid-table for ZONE (a sticky self-row inside the page) and
-    // off-page for STATE/INDIA (self surfaced separately).
     const selfInPage = segment === LeaderboardSegment.Zone;
     const scopeKey =
       segment === LeaderboardSegment.Zone
@@ -810,7 +761,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
     }) satisfies RankCardQuery,
 
   StreakCalendar: () => {
-    // Distinct check-in instants over the last ~3 weeks for the heatmap.
     const days = [1, 2, 4, 5, 7, 8, 9, 11, 12, 14, 15, 16, 18, 19].map((d) =>
       iso(NOW - d * DAY),
     );
@@ -827,7 +777,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
     } satisfies StreakCalendarQuery;
   },
 
-  // ----- Notifications -----
   Notifications: () =>
     ({
       notifications: [
@@ -861,7 +810,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
       ],
     }) satisfies NotificationsQuery,
 
-  // ----- Safety -----
   TrustedContact: () =>
     ({
       trustedContact: {
@@ -873,7 +821,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
 
   Incidents: () => ({ incidents: [] }) satisfies IncidentsQuery,
 
-  // ----- Feature flags -----
   FeatureFlags: () =>
     ({
       featureFlags: [
@@ -884,7 +831,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
       ],
     }) satisfies FeatureFlagsQuery,
 
-  // ----- Coach portal -----
   CoachDashboard: () =>
     ({
       coachDashboard: {
@@ -930,7 +876,6 @@ export const demoFixtures: Record<string, DemoResolver> = {
 
   CoachProfile: () => ({ coachProfile: COACH_ARJUN }) satisfies CoachProfileQuery,
 
-  // ----- Mutations -----
   RequestOtp: () => ({ requestOtp: true }) satisfies RequestOtpMutation,
 
   VerifyOtp: () =>

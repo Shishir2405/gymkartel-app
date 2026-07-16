@@ -15,10 +15,6 @@ interface ToastApi {
 
 const ToastContext = createContext<ToastApi>({ show: () => {} });
 
-/**
- * Minimal quiet toast ("Logged", "Saved"). No emojis, no exclamation marks.
- * Auto-dismisses. Only one at a time.
- */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

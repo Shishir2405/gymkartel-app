@@ -28,13 +28,6 @@ import { useCoachQuery } from "../../../graphql/generated/graphql";
 import { formatRupees } from "../../../lib/format";
 import { toUiError } from "../../../lib/errors";
 
-/**
- * Coach profile — a sign-off screen. Price is shown UPFRONT (Flow 5 bans
- * "contact for price"). The VERIFIED tick and certification ticks are orange —
- * the single accent, used with restraint. The Legend badge is the only place
- * gold is allowed here. A sticky bottom bar carries the one orange "Book"
- * button plus a quiet chat affordance.
- */
 export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"CoachProfile">) {
   const { coachId } = route.params;
   const [{ data, fetching, error }] = useCoachQuery({ variables: { id: coachId } });
@@ -75,7 +68,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
   return (
     <View style={styles.root} testID="coach-profile">
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Cover */}
+        {}
         <View style={styles.cover}>
           {coach.transformationPhotoUrls[0] ? (
             <Image source={{ uri: coach.transformationPhotoUrls[0] }} style={styles.coverImg} />
@@ -92,7 +85,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
         </View>
 
         <View style={styles.body}>
-          {/* Portrait + identity */}
+          {}
           <View style={styles.identity}>
             <Avatar name={coach.displayName} size={72} />
             <View style={styles.nameBlock}>
@@ -118,7 +111,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
             </View>
           </View>
 
-          {/* Price upfront */}
+          {}
           <Card padded style={styles.priceCard}>
             <Text preset="label" color="secondary">
               PER SESSION
@@ -128,12 +121,12 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
             </Text>
           </Card>
 
-          {/* Bio */}
+          {}
           <Text preset="body" color="secondary" style={styles.bio}>
             {coach.bio}
           </Text>
 
-          {/* Specialties */}
+          {}
           {coach.specialties.length > 0 ? (
             <>
               <Text preset="label" color="secondary" style={styles.section}>
@@ -147,7 +140,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
             </>
           ) : null}
 
-          {/* Certifications (verified tick = orange) */}
+          {}
           <Text preset="label" color="secondary" style={styles.section}>
             CERTIFICATIONS
           </Text>
@@ -157,7 +150,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
             <CertRow title="Strength & Conditioning" issuer="NSCA" verified={coach.verified} />
           </Card>
 
-          {/* Transformation gallery */}
+          {}
           {coach.transformationPhotoUrls.length > 0 ? (
             <>
               <Text preset="label" color="secondary" style={styles.section}>
@@ -171,7 +164,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
             </>
           ) : null}
 
-          {/* Reviews */}
+          {}
           <Text preset="label" color="secondary" style={styles.section}>
             REVIEWS
           </Text>
@@ -188,7 +181,7 @@ export function CoachProfileScreen({ navigation, route }: MemberScreenProps<"Coa
         </View>
       </ScrollView>
 
-      {/* Sticky bottom bar */}
+      {}
       <SafeAreaView edges={["bottom"]} style={styles.stickyWrap}>
         <View style={styles.sticky}>
           <View style={{ flex: 1 }}>

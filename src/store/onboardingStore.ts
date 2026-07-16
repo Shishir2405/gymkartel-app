@@ -1,11 +1,6 @@
 import { create } from "zustand";
 import type { Tier } from "@gymkartel/contracts";
 
-/**
- * In-progress onboarding form. Client-only, held here until the final mutation
- * writes it to the server; then it is reset. This is exactly the kind of
- * "in-progress form" the brief assigns to Zustand (not the urql cache).
- */
 export type HealthGoal = "STRENGTH" | "FAT_LOSS" | "ENDURANCE" | "GENERAL";
 export type Experience = "NEW" | "RETURNING" | "REGULAR";
 
@@ -33,7 +28,7 @@ const initial = {
   experience: null,
   trainingDaysTarget: 4,
   injuriesNote: "",
-  tier: "STANDARD" as Tier | null, // STANDARD pre-highlighted per spec
+  tier: "STANDARD" as Tier | null,
   zone: null,
   state: null,
 };

@@ -11,15 +11,10 @@ import {
 import type { MemberScreenProps } from "@/app/navigation/types";
 import { AMENITY_ORDER, amenityLabel } from "@/features/gyms/components/amenityIcon";
 
-const RADII = [1, 3, 5, 10] as const; // km
+const RADII = [1, 3, 5, 10] as const;
 const RATINGS = [3, 3.5, 4, 4.5] as const;
 const SORTS = ["Nearest", "Busiest", "Top rated"] as const;
 
-/**
- * Gym filters, presented as a sheet-style screen. Selected chips carry the
- * orange selection signature. Filter state is local for now (wiring to the
- * query is a later pass); the single bottom orange button applies and returns.
- */
 export function GymFiltersScreen({ navigation }: MemberScreenProps<"GymFilters">) {
   const [amenities, setAmenities] = useState<Set<string>>(new Set());
   const [radiusKm, setRadiusKm] = useState<number>(5);

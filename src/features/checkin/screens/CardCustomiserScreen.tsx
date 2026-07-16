@@ -11,10 +11,6 @@ const TEMPLATES: { key: ShareTemplate; label: string }[] = [
   { key: "bold", label: "Bold" },
 ];
 
-/**
- * Card customiser — three templates for the story export. Live preview updates
- * as you switch; Share is the single orange button.
- */
 export function CardCustomiserScreen({ route }: MemberScreenProps<"CardCustomiser">) {
   const { gymName, dayNumber, streak, rank, date } = route.params;
   const [template, setTemplate] = useState<ShareTemplate>("classic");
@@ -25,7 +21,6 @@ export function CardCustomiserScreen({ route }: MemberScreenProps<"CardCustomise
       const uri = await captureRef(cardRef, { format: "png", quality: 1, width: 1080, height: 1920 });
       await Share.share({ url: uri, message: `Day ${dayNumber} at ${gymName}.` });
     } catch {
-      // no-op on cancel
     }
   };
 

@@ -18,10 +18,8 @@ import { useGymsQuery } from "@/graphql/generated/graphql";
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
 
-/** Session hours offered per day. */
 const SLOT_HOURS = [6, 7, 8, 9, 17, 18, 19, 20];
 
-/** Deterministic mock: which hours are already taken for a given day. */
 function isTaken(dayIndex: number, hour: number): boolean {
   return (dayIndex * 3 + hour) % 4 === 0;
 }
@@ -32,11 +30,6 @@ function hourLabel(hour: number): string {
   return `${h12}:00 ${period}`;
 }
 
-/**
- * Pick a slot — date pills (next 7 days), a time grid where free slots are
- * raised and tappable while taken slots are flat, dimmed and disabled, plus a
- * gym selector. Selection is tracked locally; Continue carries it to ReviewPay.
- */
 export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlot">) {
   const { coachId } = route.params;
   const [{ data, fetching, error }, refetch] = useGymsQuery({ variables: {} });
@@ -82,7 +75,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
         Pick a slot
       </Text>
 
-      {/* Date pills */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         DATE
       </Text>
@@ -119,7 +112,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
         })}
       </ScrollView>
 
-      {/* Time grid */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         TIME
       </Text>
@@ -157,7 +150,7 @@ export function PickSlotScreen({ navigation, route }: MemberScreenProps<"PickSlo
         })}
       </View>
 
-      {/* Gym selector */}
+      {}
       <Text preset="label" color="secondary" style={styles.section}>
         GYM
       </Text>

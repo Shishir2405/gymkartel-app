@@ -23,7 +23,6 @@ interface ExerciseGroup {
   entries: LedgerEntryRowFragment[];
 }
 
-/** Group ledger entries by exercise, newest session first within each group. */
 function groupByExercise(entries: readonly LedgerEntryRowFragment[]): ExerciseGroup[] {
   const map = new Map<string, LedgerEntryRowFragment[]>();
   for (const entry of entries) {
@@ -38,11 +37,6 @@ function groupByExercise(entries: readonly LedgerEntryRowFragment[]): ExerciseGr
   }));
 }
 
-/**
- * The read-only record: every exercise you have logged, grouped, newest session
- * first — live from `ledgerHistory`. Weight figures use Barlow so the numbers
- * carry the card. Loading / empty / error states preserved.
- */
 export function ExerciseHistoryScreen(_props: MemberScreenProps<"ExerciseHistory">) {
   const [{ data, fetching, error }, refetch] = useLedgerHistoryQuery();
   const uiError = toUiError(error);

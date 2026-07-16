@@ -29,14 +29,6 @@ import { haptics } from "@/lib/haptics";
 
 const PLACEHOLDERS = ["bench 4x8 60kg", "squat 5x5 100kg", "deadlift 3x5 120kg"];
 
-/**
- * The AI log input. Keyboard opens on entry; the placeholder cycles through real
- * examples while the field is empty. Every keystroke re-parses live on-device —
- * recognized tokens show as normal chips, anything ambiguous surfaces as an
- * amber "?" chip; we never silently guess. Save sends the raw text to the
- * `logWorkout` mutation and the server's parsed ledger entries append to the
- * session list.
- */
 export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
   const toast = useToast();
   const inputRef = useRef<TextInput>(null);
@@ -46,7 +38,6 @@ export function LogWorkoutScreen(_props: MemberScreenProps<"LogWorkout">) {
   const [value, setValue] = useState("");
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
 
-  // Cycle the placeholder only while the field is empty.
   useEffect(() => {
     if (value.length > 0) return;
     const id = setInterval(() => {

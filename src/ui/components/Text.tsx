@@ -10,7 +10,7 @@ const COLOR_MAP: Record<ColorKey, string> = {
   disabled: colors.text.disabled,
   accent: colors.accent.primary,
   gold: colors.accent.gold,
-  onAccent: colors.text.primary, // off-white on the orange fill
+  onAccent: colors.text.primary,
 };
 
 export interface TextProps extends RNTextProps {
@@ -20,10 +20,6 @@ export interface TextProps extends RNTextProps {
   children: React.ReactNode;
 }
 
-/**
- * The ONLY text component. Presets cap the app at three type sizes per screen
- * (golden rule). Text is always flat — never rendered with neumorphic shadows.
- */
 export function Text({
   preset = "body",
   color = "primary",

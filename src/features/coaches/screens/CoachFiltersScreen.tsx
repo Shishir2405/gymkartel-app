@@ -11,11 +11,6 @@ import {
   COACH_RATING_STEPS,
 } from "../hooks/useCoachFilters";
 
-/**
- * Coach filters. Selected chips carry the orange inset (the design system's
- * selection signature). Selection is stored in the client filter store and
- * applied by Browse on goBack. The one orange action sits at the bottom.
- */
 export function CoachFiltersScreen({ navigation }: MemberScreenProps<"CoachFilters">) {
   const { specialty, maxPricePaise, minRating, femaleOnly, set, reset } = useCoachFilters();
 

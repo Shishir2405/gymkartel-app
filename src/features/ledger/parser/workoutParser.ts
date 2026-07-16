@@ -1,11 +1,3 @@
-/**
- * The workout AI input parser. Turns free text like "bench 4x8 60kg" into typed
- * chips in under a beat. Pure and heavily tested.
- *
- * Product rule: never SILENTLY guess. When a token is ambiguous we still surface
- * it, flagged uncertain, so the amber "?" chip shows instead of a wrong-but-
- * confident value.
- */
 export type ChipKind = "exercise" | "sets" | "reps" | "weight" | "unknown";
 
 export interface ParsedChip {
@@ -62,7 +54,6 @@ export function parseWorkout(input: string): ParsedWorkout {
   const exerciseWords: string[] = [];
 
   for (const token of tokens) {
-    // sets x reps, e.g. 4x8 or 4×8
     const sxr = token.match(/^(\d{1,2})[x×](\d{1,3})$/);
     if (sxr) {
       sets = Number.parseInt(sxr[1] ?? "", 10);
@@ -72,7 +63,6 @@ export function parseWorkout(input: string): ParsedWorkout {
       continue;
     }
 
-    // weight, e.g. 60kg / 60 kg / 135lb / 135lbs
     const w = token.match(/^(\d{1,4}(?:\.\d)?)(kg|kgs|lb|lbs)?$/);
     if (w && w[2]) {
       const raw = Number.parseFloat(w[1] ?? "0");
@@ -87,7 +77,6 @@ export function parseWorkout(input: string): ParsedWorkout {
       continue;
     }
 
-    // bare number with no unit and no x — ambiguous (weight? reps?). Flag it.
     if (/^\d{1,4}$/.test(token)) {
       chips.push({
         kind: "unknown",
@@ -98,13 +87,11 @@ export function parseWorkout(input: string): ParsedWorkout {
       continue;
     }
 
-    // word token — part of the exercise name.
     if (/^[a-z][a-z-]*$/.test(token)) {
       exerciseWords.push(token);
       continue;
     }
 
-    // anything else is unrecognized -> uncertain chip, never dropped silently.
     chips.push({ kind: "unknown", label: token, value: token, uncertain: true });
   }
 
@@ -113,7 +100,6 @@ export function parseWorkout(input: string): ParsedWorkout {
     const recognized = exerciseWords.some((wpart) =>
       KNOWN_EXERCISES.some((known) => wpart.includes(known) || known.includes(wpart)),
     );
-    // Insert the exercise chip FIRST for reading order.
     chips.unshift({
       kind: "exercise",
       label: titleCase(exercise),

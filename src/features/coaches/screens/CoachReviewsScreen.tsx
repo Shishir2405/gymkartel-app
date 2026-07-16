@@ -22,7 +22,6 @@ interface Review {
   text: string;
 }
 
-/** Local mock reviews — the reviews service is not wired yet. */
 const MOCK_REVIEWS: Review[] = [
   {
     id: "r1",
@@ -54,10 +53,6 @@ const MOCK_REVIEWS: Review[] = [
   },
 ];
 
-/**
- * Full reviews list. Plain rows with star ratings — no theme flourish. Loads
- * from local mock data with an explicit loading and empty state.
- */
 export function CoachReviewsScreen({ navigation, route }: MemberScreenProps<"CoachReviews">) {
   const { coachId } = route.params;
   const [loading, setLoading] = useState(true);

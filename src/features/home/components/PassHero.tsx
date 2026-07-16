@@ -13,11 +13,6 @@ export interface PassHeroData {
   streak: number;
 }
 
-/**
- * HERO pass card, has-pass state. The DAYS LEFT figure is the star — 56px Barlow
- * Condensed filling the card. The streak flame is the ONE orange accent on the
- * card. Quiet otherwise.
- */
 export function PassHeroCard({ data }: { data: PassHeroData }) {
   return (
     <Card padded>
@@ -45,11 +40,6 @@ export function PassHeroCard({ data }: { data: PassHeroData }) {
   );
 }
 
-/**
- * HERO pass card, NO-pass state. This is the one place Home carries the single
- * orange button — "Get your Pass · from ₹99". The Ledger and gyms open with a
- * Pass, so the whole screen bends toward this action.
- */
 export function NoPassHeroCard({
   onGetPass,
   fromPaise = TIER_DAY_RATE.BASIC,

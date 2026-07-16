@@ -1,19 +1,11 @@
-/**
- * The offline check-in outbox — pure logic, no I/O. This is the single most
- * important piece of the app: a scan is queued locally and the UI returns
- * immediately; sync happens later. Everything here is deterministic and unit
- * tested (queue offline -> flush online -> dedupe).
- */
 
 export type OutboxStatus = "pending" | "syncing" | "synced" | "failed";
 
 export interface OutboxItem {
-  /** Generated on-device at scan time; the server dedupes on this. */
   idempotencyKey: string;
   gymCheckInCode: string;
   gymId: string;
   gymName: string;
-  /** Client-authoritative scan time — offline-safe. */
   scannedAt: string;
   acceptedTopUp: boolean;
   status: OutboxStatus;
@@ -45,10 +37,6 @@ export interface NewOutboxItem {
 
 export const emptyOutbox: OutboxState = { items: [] };
 
-/**
- * Pure reducer. Enqueue is idempotent on idempotencyKey (an offline scan that
- * is retried collapses to one item — matches the server's dedupe key).
- */
 export function outboxReducer(state: OutboxState, event: OutboxEvent): OutboxState {
   switch (event.type) {
     case "HYDRATE":
@@ -56,7 +44,7 @@ export function outboxReducer(state: OutboxState, event: OutboxEvent): OutboxSta
 
     case "ENQUEUE": {
       if (state.items.some((i) => i.idempotencyKey === event.item.idempotencyKey)) {
-        return state; // dedupe
+        return state;
       }
       const item: OutboxItem = {
         ...event.item,
@@ -95,7 +83,6 @@ function mapItem(
   return { items: state.items.map((i) => (i.idempotencyKey === key ? fn(i) : i)) };
 }
 
-/** Keep the earliest item per idempotencyKey. */
 export function dedupe(items: OutboxItem[]): OutboxItem[] {
   const seen = new Map<string, OutboxItem>();
   for (const item of items) {
@@ -104,7 +91,6 @@ export function dedupe(items: OutboxItem[]): OutboxItem[] {
   return [...seen.values()];
 }
 
-/** The items a sync pass should attempt, oldest first. */
 export function pendingItems(state: OutboxState): OutboxItem[] {
   return state.items
     .filter((i) => i.status === "pending")
@@ -115,7 +101,6 @@ export function pendingCount(state: OutboxState): number {
   return state.items.filter((i) => i.status === "pending").length;
 }
 
-/** Generate a device-unique idempotency key (>= 8 chars per the contract). */
 export function newIdempotencyKey(): string {
   const rand = Math.random().toString(36).slice(2, 10);
   return `ci_${Date.now().toString(36)}_${rand}`;

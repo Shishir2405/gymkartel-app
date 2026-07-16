@@ -12,15 +12,9 @@ export interface ShareCardProps {
   streak: number;
   rank: string;
   date: string;
-  /** Rendered at export resolution (1080x1920) when true. */
   full?: boolean;
 }
 
-/**
- * The exported story card. Three templates, same record. Rendered at a 9:16
- * ratio; the parent captures it at 1080x1920. The DAY figure dominates in Barlow
- * Condensed — unmistakably Gym Kartel, never a generic stat card.
- */
 export function ShareCard({
   template,
   gymName,

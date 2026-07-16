@@ -15,11 +15,6 @@ import {
 import type { CoachTabScreenProps } from "@/app/navigation/types";
 import { MOCK_THREADS, maskPii, type CoachThread } from "@/features/coachside/lib/mock";
 
-/**
- * Coach inbox. One row per client thread. Chat only exists once a client books,
- * so the empty state says exactly that. Preview text is masked so no contact
- * detail leaks into the list.
- */
 export function CoachChatScreen({ navigation }: CoachTabScreenProps<"CoachChat">) {
   return (
     <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>

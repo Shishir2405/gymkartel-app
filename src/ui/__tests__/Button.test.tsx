@@ -2,9 +2,6 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Button } from "../components/Button";
 
-/**
- * The four button variants are executable specs — rest / pressed / disabled.
- */
 describe("Button", () => {
   it("renders its label and fires onPress at rest", () => {
     const onPress = jest.fn();

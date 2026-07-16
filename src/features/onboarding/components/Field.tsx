@@ -17,9 +17,7 @@ export interface FieldProps {
   keyboardType?: KeyboardTypeOptions;
   maxLength?: number;
   autoFocus?: boolean;
-  /** A leading fixed adornment, e.g. the "+91" dial prefix. */
   prefix?: string;
-  /** Inline validation / help line under the field. */
   hint?: string;
   hintTone?: "secondary" | "error";
   multiline?: boolean;
@@ -27,11 +25,6 @@ export interface FieldProps {
   testID?: string;
 }
 
-/**
- * The onboarding text field. A raised surface with a hairline that brightens on
- * focus — it never turns orange, keeping the single accent reserved for the one
- * primary button per screen. Label sits above; an optional hint sits below.
- */
 export function Field({
   label,
   value,

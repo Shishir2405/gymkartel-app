@@ -14,12 +14,6 @@ const TIERS: { tier: Tier; label: string }[] = [
   { tier: "PREMIUM", label: "Premium" },
 ];
 
-/**
- * Three tiers, one column. Every price comes from the contract's TIER_DAY_RATE
- * so the app never invents money. Standard is pre-highlighted from the store.
- * The selected card carries the orange inset stroke — the same selection
- * signature as a chip — while the button stays the single orange action.
- */
 export function PickTierScreen({ navigation }: AuthScreenProps<"PickTier">) {
   const selected = useOnboardingStore((s) => s.tier);
   const set = useOnboardingStore((s) => s.set);

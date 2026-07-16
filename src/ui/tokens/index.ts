@@ -8,7 +8,6 @@ import { colors } from "./colors";
 import { typePresets, fontFamily } from "./typography";
 import { spacing, radius, sizing, neo, motion } from "./spacing";
 
-/** The full token bundle, consumed by ThemeProvider and any Storybook. */
 export const tokens = {
   colors,
   typePresets,

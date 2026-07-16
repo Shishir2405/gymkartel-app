@@ -17,16 +17,10 @@ type Phase = "phone" | "otp";
 
 const DIGITS = /^\d*$/;
 
-/** +91 followed by a 10-digit Indian mobile starting 6-9. */
 function isValidLocal(local: string): boolean {
   return /^[6-9]\d{9}$/.test(local);
 }
 
-/**
- * Phone then OTP, one screen in two phases. Sign-in happens here: a verified
- * OTP mints the session, the phone is saved to the onboarding form, and we move
- * on to name and photo. Errors are mapped to plain copy — never a raw message.
- */
 export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
   const [phase, setPhase] = useState<Phase>("phone");
   const [local, setLocal] = useState("");
@@ -43,8 +37,6 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
     if (demoBusy) return;
     setDemoBusy(true);
     void haptics.success();
-    // Mints a fake session; RootNavigator swaps to the member app on signedIn,
-    // so no navigation is needed here.
     await demoSignIn();
   };
 
@@ -93,9 +85,6 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
   const busy = isPhone ? sending : verifying;
   const canSubmit = isPhone ? phoneValid : codeValid;
 
-  // DEMO build: skip OTP entirely. One prominent PRIMARY button (the only
-  // primary on the screen) drops the client straight into the app with mock
-  // data. The real phone/OTP flow below stays intact and is used in production.
   if (IS_DEMO) {
     return (
       <Screen

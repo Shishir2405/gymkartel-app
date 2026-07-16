@@ -2,13 +2,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import type { CompositeScreenProps } from "@react-navigation/native";
 
-/**
- * Central navigation contract. Features export screen components; this file (and
- * the navigators) are the only place routes are registered — screens never
- * register themselves.
- */
-
-/** Onboarding / auth stack. */
 export type AuthStackParamList = {
   Splash: undefined;
   PhoneOtp: undefined;
@@ -18,7 +11,6 @@ export type AuthStackParamList = {
   CityZone: undefined;
 };
 
-/** The five member tabs. Check-in is the raised center tab. */
 export type MemberTabParamList = {
   Home: undefined;
   Gyms: undefined;
@@ -27,22 +19,18 @@ export type MemberTabParamList = {
   Club: undefined;
 };
 
-/** Member root stack: the tabs plus every pushed detail / modal screen. */
 export type MemberStackParamList = {
   Tabs: undefined;
 
-  // Home
   Notifications: undefined;
   TheCount: undefined;
 
-  // Gyms
   GymDetail: { gymId: string };
   GymFilters: undefined;
   PassLadder: undefined;
   Payment: { pack: string } | { topUpForCheckIn: true; amountPaise: number };
   PurchaseSuccess: { pack: string };
 
-  // Check-in
   CheckInSuccess: {
     gymName: string;
     dayNumber: number;
@@ -58,13 +46,11 @@ export type MemberStackParamList = {
     date: string;
   };
 
-  // Ledger / Track
   ExerciseHistory: undefined;
   ProgressCharts: undefined;
   ProgressPhotos: undefined;
   LogWorkout: undefined;
 
-  // Coaches
   CoachBrowse: undefined;
   CoachFilters: undefined;
   CoachProfile: { coachId: string };
@@ -73,19 +59,16 @@ export type MemberStackParamList = {
   ReviewPay: { coachId: string; slotIso: string; gymId: string };
   BookingConfirmed: { bookingId: string };
 
-  // Chat
   ChatInbox: undefined;
   ChatThread: { bookingId: string; peerName: string };
   LocationShare: { bookingId: string };
 
-  // Club
   StreakCalendar: undefined;
   Leaderboards: undefined;
   TerritoryWars: undefined;
   CardGallery: undefined;
   Recruit: undefined;
 
-  // Profile
   Profile: undefined;
   PassPayments: undefined;
   Invoices: undefined;
@@ -93,11 +76,9 @@ export type MemberStackParamList = {
   Support: undefined;
   Settings: undefined;
 
-  // System
   RankUp: { fromRank: string; toRank: string; isTopRank?: boolean };
 };
 
-/** Coach side (role-switched). */
 export type CoachStackParamList = {
   CoachTabs: undefined;
   CoachClientDetail: { clientId: string };
@@ -113,8 +94,6 @@ export type CoachTabParamList = {
   CoachEarnings: undefined;
   CoachChat: undefined;
 };
-
-// ---- Typed screen prop helpers ---------------------------------------------
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> =
   NativeStackScreenProps<AuthStackParamList, T>;

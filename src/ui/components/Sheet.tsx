@@ -10,14 +10,9 @@ export interface SheetProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  /** Serious sheets (incident/refund) drop the dark theme for a light surface. */
   serious?: boolean;
 }
 
-/**
- * Bottom sheet. Dark luxury by default; `serious` renders a plain light human
- * surface (SOS / incident report / refund) per golden rule 6.
- */
 export function Sheet({ visible, onClose, title, children, serious = false }: SheetProps) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>

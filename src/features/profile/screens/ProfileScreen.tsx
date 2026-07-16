@@ -23,13 +23,8 @@ import type { MemberScreenProps } from "@/app/navigation/types";
 import { useViewerQuery } from "@/graphql/generated/graphql";
 import { NavRow, RowDivider } from "../components/Rows";
 
-/** Mock join date — no server field for it yet. */
 const MEMBER_SINCE = "Jan 2025";
 
-/**
- * Profile home. A calm identity header, two quiet stat tiles, then a plain list
- * of destinations. No orange lives here — Profile is a hub, not an action.
- */
 export function ProfileScreen({ navigation }: MemberScreenProps<"Profile">) {
   const [{ data, fetching, error }] = useViewerQuery();
   const viewer = data?.viewer ?? null;

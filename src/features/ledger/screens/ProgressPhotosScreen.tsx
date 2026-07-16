@@ -21,16 +21,11 @@ interface ProgressPhoto {
   takenAt: string;
 }
 
-/**
- * Progress photos — a plain grid backed by local state. "Add photo" opens the
- * library; nothing leaves the device. Coach-side consent lives elsewhere.
- */
 export function ProgressPhotosScreen(_props: MemberScreenProps<"ProgressPhotos">) {
   const toast = useToast();
   const { width } = useWindowDimensions();
   const [photos, setPhotos] = useState<ProgressPhoto[]>([]);
 
-  // Two columns inside the 24px screen margins with a 12px gutter.
   const size = Math.floor((width - spacing.screen * 2 - spacing.md) / 2);
 
   const addPhoto = useCallback(async () => {

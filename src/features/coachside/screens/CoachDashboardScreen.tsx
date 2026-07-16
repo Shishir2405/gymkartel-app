@@ -24,13 +24,6 @@ import { formatRupees, formatTime, greeting } from "@/lib/format";
 import { toUiError } from "@/lib/errors";
 import { MOCK_REVIEWS, type CoachReview } from "@/features/coachside/lib/mock";
 
-/**
- * Coach home. The take-home number is the hero (Barlow), sourced from
- * `coachDashboard.earningsPaise` (already net of the 20% platform fee).
- * Everything else is quiet. Recent reviews are folded in with a public-reply
- * affordance (reviews have no query yet — kept local). The gear opens a small
- * sheet carrying the role switch and sign-out.
- */
 export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachDashboard">) {
   const [{ data: viewerData }] = useViewerQuery();
   const [{ data, fetching, error }, refetch] = useCoachDashboardQuery();
@@ -90,7 +83,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Earnings hero */}
+        {}
         <Card padded style={styles.hero}>
           <Text preset="label" color="secondary">
             YOUR TAKE-HOME PREVIEW
@@ -103,7 +96,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           </Text>
         </Card>
 
-        {/* Today + rating strip */}
+        {}
         <View style={styles.statRow}>
           <StatTile value={String(todaysSessions.length)} label="TODAY" />
           <StatTile value={String(pending.length)} label="REQUESTS" />
@@ -114,7 +107,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           />
         </View>
 
-        {/* Today's sessions */}
+        {}
         <Text preset="label" color="secondary" style={styles.section}>
           TODAY
         </Text>
@@ -145,7 +138,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           </Card>
         )}
 
-        {/* Quick rows */}
+        {}
         <Text preset="label" color="secondary" style={styles.section}>
           MANAGE
         </Text>
@@ -175,7 +168,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
           />
         </Card>
 
-        {/* Recent reviews with public reply */}
+        {}
         <Text preset="label" color="secondary" style={styles.section}>
           RECENT REVIEWS
         </Text>
@@ -189,7 +182,7 @@ export function CoachDashboardScreen({ navigation }: CoachTabScreenProps<"CoachD
         </Card>
       </ScrollView>
 
-      {/* Settings sheet */}
+      {}
       <Sheet visible={menuOpen} onClose={() => setMenuOpen(false)} title="Settings">
         <Button
           label="Sign out"

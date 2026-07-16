@@ -1,14 +1,6 @@
 import { create } from "zustand";
 import type { OutboxItem } from "../features/checkin/offline/outbox";
 
-/**
- * In-memory mirror of the SQLite check-in outbox. The SQLite table is the
- * durable source of truth; this store exists so the UI can react to queue depth
- * (the offline banner, the sync badge) without hitting SQLite on every render.
- *
- * IMPORTANT: nothing in the check-in UI ever awaits this or the network — a
- * scan enqueues locally and returns immediately (hard product requirement).
- */
 interface OutboxState {
   items: OutboxItem[];
   hydrate: (items: OutboxItem[]) => void;
@@ -23,7 +15,6 @@ export const useOutboxStore = create<OutboxState>((set, get) => ({
   hydrate: (items) => set({ items }),
   enqueue: (item) =>
     set((s) => {
-      // Dedupe on idempotencyKey — an offline retry must not double-queue.
       if (s.items.some((i) => i.idempotencyKey === item.idempotencyKey)) return s;
       return { items: [...s.items, item] };
     }),

@@ -5,11 +5,8 @@ import { stackScreenOptions } from "./navTheme";
 import { MemberTabs } from "./MemberTabs";
 import { useOutboxSync } from "../../features/checkin";
 
-// Home
 import { NotificationsScreen, TheCountScreen } from "../../features/home";
-// Check-in
 import { CheckInSuccessScreen, CardCustomiserScreen } from "../../features/checkin";
-// Gyms
 import {
   GymDetailScreen,
   GymFiltersScreen,
@@ -17,14 +14,12 @@ import {
   PaymentScreen,
   PurchaseSuccessScreen,
 } from "../../features/gyms";
-// Ledger
 import {
   LogWorkoutScreen,
   ExerciseHistoryScreen,
   ProgressChartsScreen,
   ProgressPhotosScreen,
 } from "../../features/ledger";
-// Coaches
 import {
   CoachBrowseScreen,
   CoachFiltersScreen,
@@ -34,9 +29,7 @@ import {
   ReviewPayScreen,
   BookingConfirmedScreen,
 } from "../../features/coaches";
-// Chat
 import { ChatInboxScreen, ChatThreadScreen, LocationShareScreen } from "../../features/chat";
-// Club
 import {
   StreakCalendarScreen,
   LeaderboardsScreen,
@@ -44,7 +37,6 @@ import {
   CardGalleryScreen,
   RecruitScreen,
 } from "../../features/club";
-// Profile
 import {
   ProfileScreen,
   PassPaymentsScreen,
@@ -53,18 +45,11 @@ import {
   SupportScreen,
   SettingsScreen,
 } from "../../features/profile";
-// System
 import { RankUpScreen } from "../../features/system";
 
 const Stack = createNativeStackNavigator<MemberStackParamList>();
 
-/**
- * The member root stack. The tabs are one route; every detail / modal screen is
- * pushed on top so cross-tab navigation (Home -> Gym detail) just works.
- * Features export screens; this is the ONLY place member routes are registered.
- */
 export function MemberNavigator() {
-  // Drive the offline check-in outbox from the top of the member tree.
   useOutboxSync();
 
   return (

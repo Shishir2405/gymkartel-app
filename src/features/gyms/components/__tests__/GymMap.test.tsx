@@ -36,7 +36,6 @@ describe("gymCoords", () => {
     const a = gymCoords("gym-1");
     const b = gymCoords("gym-2");
     expect(a).not.toEqual(b);
-    // Within a few km of the default centre.
     expect(Math.abs(a.latitude - DEFAULT_MAP_CENTER.latitude)).toBeLessThan(0.05);
     expect(Math.abs(a.longitude - DEFAULT_MAP_CENTER.longitude)).toBeLessThan(0.05);
   });
@@ -46,7 +45,6 @@ describe("resolveGymCoords", () => {
   it("prefers the real wire location when present", () => {
     const coords = resolveGymCoords("gym-1", { lat: 19.076, lng: 72.8777 });
     expect(coords).toEqual({ latitude: 19.076, longitude: 72.8777 });
-    // The real coordinate must NOT be the deterministic id-hash fallback.
     expect(coords).not.toEqual(gymCoords("gym-1"));
   });
 

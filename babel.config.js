@@ -11,7 +11,6 @@ module.exports = function (api) {
           extensions: [".ts", ".tsx", ".js", ".jsx", ".json"],
         },
       ],
-      // reanimated plugin MUST be listed last.
       "react-native-reanimated/plugin",
     ],
   };

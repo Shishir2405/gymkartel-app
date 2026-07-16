@@ -24,17 +24,12 @@ interface Invoice {
   pack: PassPack;
 }
 
-/** Mock invoice history — pricing still resolves through the contract. */
 const MOCK_INVOICES: Invoice[] = [
   { id: "inv-2026-06", isoDate: "2026-06-14T09:00:00.000Z", packDays: 15, tier: "STANDARD", pack: "FIFTEEN_DAY" },
   { id: "inv-2026-05", isoDate: "2026-05-02T09:00:00.000Z", packDays: 30, tier: "PREMIUM", pack: "THIRTY_DAY" },
   { id: "inv-2026-04", isoDate: "2026-04-11T09:00:00.000Z", packDays: 7, tier: "BASIC", pack: "SEVEN_DAY" },
 ];
 
-/**
- * Past invoices. Plain list — date, what was bought, the amount (always via the
- * contract price), and a ghost download. Full loading and empty states.
- */
 export function InvoicesScreen(_props: MemberScreenProps<"Invoices">) {
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -87,7 +82,6 @@ export function InvoicesScreen(_props: MemberScreenProps<"Invoices">) {
                   variant="ghost"
                   fullWidth={false}
                   onPress={() => {
-                    // Wired to the receipt download service.
                   }}
                 />
               </View>
