@@ -25,6 +25,33 @@ pnpm start          # expo start --dev-client
 ```
 Copy `.env.example` to `.env` and set `GRAPHQL_URL`.
 
+## Demo mode vs production (self-contained client build)
+The app builds in one of two modes, chosen entirely by env at build time:
+
+- **production** (the default — no env, or `EXPO_PUBLIC_APP_ENV=production`): talks to the real GraphQL backend, real OTP, Razorpay UPI, Google Maps and camera. Unchanged.
+- **demo**: a fully offline, self-contained build for handing a clickable APK to a client. No backend, keys, permissions, login, Razorpay, OTP or Google Maps key are needed — **every screen works on mock data**.
+
+### How the mode is selected
+`src/config/appMode.ts` resolves the mode from (in priority order) the Expo-inlined build vars `EXPO_PUBLIC_APP_ENV` / `EXPO_PUBLIC_DEMO`, then their `app.config.ts` `extra` mirror (read at runtime via `expo-constants`). It exports:
+- `APP_ENV` — the resolved environment.
+- `IS_DEMO = EXPO_PUBLIC_DEMO === '1' || (APP_ENV && APP_ENV !== 'production')`.
+
+With no env set, `IS_DEMO` is `false` — a normal build is never accidentally a demo.
+
+### What demo mode changes (production stays byte-for-byte untouched)
+- **GraphQL**: the urql client swaps its network exchanges for a single `demoExchange` (`src/graphql/demo/`). It resolves every operation by NAME from `fixtures.ts` and returns `{ data }` with no network — the normalized cache still fronts every read. Fixtures cover all 41 operations (Viewer / gyms / coaches / pass ladder / ledger / leaderboards / chat / coach-portal / safety / flags …); mutations return plausible success; the chat subscription stays open emitting nothing. Any unmapped operation returns an empty-but-valid shape (never throws) and warns in `__DEV__`.
+- **Login**: the Phone+OTP screen shows one primary **"Enter demo"** button → `demoSignIn()` mints a fake session and the app opens as premium member "Ravi".
+- **Check-in**: the scanner needs no camera or permission — a **"Simulate scan"** button runs the identical offline check-in success path (450ms seal stamp + share card).
+- **Maps**: `GymMap` renders its themed placeholder instead of the native map, so no Google Maps key is required.
+- **Payments**: `openCheckout` resolves to immediate success without importing native Razorpay, so purchase / top-up / booking flows reach their success screens.
+- **Marker**: a small, non-intrusive **DEMO** pill (secondary text, never the accent orange) is pinned app-wide.
+
+### Build the client APK
+```bash
+eas build -p android --profile demo
+```
+The `demo` EAS profile (`eas.json`) produces an installable **APK** (`distribution: internal`) with `EXPO_PUBLIC_APP_ENV=demo` + `EXPO_PUBLIC_DEMO=1`. `app.config.ts` sets the required Android `package` / iOS `bundleIdentifier` (`com.gymkartel.app`) and `version`, and the Android Google Maps key is optional (empty string when unset) so a demo build never fails on a missing key.
+
 ## Architecture (feature-first)
 ```
 src/

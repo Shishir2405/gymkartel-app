@@ -7,6 +7,7 @@ import { createUrqlClient } from "../../graphql/client";
 import { AuthProvider } from "./AuthProvider";
 import { ConnectivityProvider } from "./ConnectivityProvider";
 import { SosProvider } from "../../features/system/components/SosProvider";
+import { DemoBadge } from "../components/DemoBadge";
 
 /**
  * Composes every app-wide provider in the right order:
@@ -23,7 +24,11 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
             <AuthProvider>
               <ConnectivityProvider>
                 <ToastProvider>
-                  <SosProvider>{children}</SosProvider>
+                  <SosProvider>
+                    {children}
+                    {/* App-wide, low-prominence marker; renders only in demo. */}
+                    <DemoBadge />
+                  </SosProvider>
                 </ToastProvider>
               </ConnectivityProvider>
             </AuthProvider>

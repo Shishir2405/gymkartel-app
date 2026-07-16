@@ -5,6 +5,7 @@ import type {
   RazorpayError,
 } from "react-native-razorpay";
 import { colors } from "@/ui/tokens";
+import { IS_DEMO } from "@/config/appMode";
 
 /**
  * Thin, typed wrapper around the Razorpay UPI checkout.
@@ -93,6 +94,18 @@ function isCancellation(err: Partial<RazorpayError>): boolean {
  * result union. Never throws.
  */
 export async function openCheckout(req: CheckoutRequest): Promise<CheckoutResult> {
+  // DEMO build: no native Razorpay is imported or invoked — checkout resolves to
+  // an immediate success so purchase / top-up / booking flows reach their success
+  // screens offline.
+  if (IS_DEMO) {
+    return {
+      status: "success",
+      paymentId: `pay_demo_${Date.now()}`,
+      orderId: req.orderId,
+      signature: null,
+    };
+  }
+
   const gateway = resolveGateway();
   if (!gateway) return { status: "unavailable" };
 

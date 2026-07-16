@@ -54,6 +54,7 @@
     "react-native-view-shot": "~4.0.3",
     "react-native-vision-camera": "^4.6.1",
     "urql": "^4.2.1",
+    "wonka": "^6.3.6",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

@@ -10,6 +10,7 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { useOnboardingStore } from "@/store/onboardingStore";
 import { toUiError } from "@/lib/errors";
 import { haptics } from "@/lib/haptics";
+import { IS_DEMO } from "@/config/appMode";
 import { Field } from "../components/Field";
 
 type Phase = "phone" | "otp";
@@ -34,8 +35,18 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
 
   const [{ fetching: sending }, requestOtp] = useRequestOtpMutation();
   const [{ fetching: verifying }, verifyOtp] = useVerifyOtpMutation();
-  const { signIn } = useAuth();
+  const { signIn, demoSignIn } = useAuth();
   const setOnboarding = useOnboardingStore((s) => s.set);
+  const [demoBusy, setDemoBusy] = useState(false);
+
+  const onEnterDemo = async () => {
+    if (demoBusy) return;
+    setDemoBusy(true);
+    void haptics.success();
+    // Mints a fake session; RootNavigator swaps to the member app on signedIn,
+    // so no navigation is needed here.
+    await demoSignIn();
+  };
 
   const phone = `+91${local}`;
   const phoneValid = isValidLocal(local);
@@ -81,6 +92,33 @@ export function PhoneOtpScreen({ navigation }: AuthScreenProps<"PhoneOtp">) {
   const isPhone = phase === "phone";
   const busy = isPhone ? sending : verifying;
   const canSubmit = isPhone ? phoneValid : codeValid;
+
+  // DEMO build: skip OTP entirely. One prominent PRIMARY button (the only
+  // primary on the screen) drops the client straight into the app with mock
+  // data. The real phone/OTP flow below stays intact and is used in production.
+  if (IS_DEMO) {
+    return (
+      <Screen
+        testID="phone-otp.demo"
+        footer={
+          <Button
+            testID="phone-otp.enter-demo"
+            label="Enter demo"
+            onPress={() => void onEnterDemo()}
+            loading={demoBusy}
+          />
+        }
+      >
+        <View style={styles.header}>
+          <Text preset="title">Gym Kartel</Text>
+          <Text preset="body" color="secondary" style={styles.sub}>
+            This is a demo build. No sign-in, no data leaves the device — every
+            screen is filled with sample data so you can explore the whole app.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <KeyboardAvoidingView

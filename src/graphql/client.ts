@@ -3,6 +3,8 @@ import { cacheExchange } from "@urql/exchange-graphcache";
 import { authExchange } from "@urql/exchange-auth";
 import Constants from "expo-constants";
 import { tokenStore } from "../lib/tokenStore";
+import { IS_DEMO } from "../config/appMode";
+import { demoExchange } from "./demo/demoExchange";
 
 /**
  * The urql client. Its normalized cache is the single source of truth for ALL
@@ -84,6 +86,20 @@ const auth = authExchange(async (utils) => {
 });
 
 export function createUrqlClient(): Client {
+  // DEMO build: a fully offline client. The normalized cache still fronts every
+  // read, but `demoExchange` resolves each operation from local fixtures — there
+  // is NO auth/fetch/subscription network exchange, so no backend, tokens, or
+  // sockets are ever touched. The `url` is unused (no fetchExchange) but the
+  // Client requires one.
+  if (IS_DEMO) {
+    return new Client({
+      url: graphqlUrl(),
+      exchanges: [graphcache, demoExchange],
+      requestPolicy: "cache-and-network",
+    });
+  }
+
+  // PRODUCTION build — unchanged: real backend, auth, and network.
   return new Client({
     url: graphqlUrl(),
     exchanges: [graphcache, auth, mapExchange({}), fetchExchange],

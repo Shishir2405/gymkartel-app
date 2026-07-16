@@ -3,6 +3,7 @@ import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { MapTrifold } from "phosphor-react-native";
 import type { Region, MapStyleElement } from "react-native-maps";
 import { Text, colors, radius, spacing } from "@/ui";
+import { IS_DEMO } from "@/config/appMode";
 import { darkMapStyle } from "./mapStyle";
 import {
   resolveGymCoords,
@@ -71,7 +72,9 @@ export function GymMap({
   fallbackBody = "Map view is coming. Browse the list below for now — distances are from your zone.",
   testID,
 }: GymMapProps) {
-  if (!Maps) {
+  // In a DEMO build we never mount the native MapView (so the APK needs no
+  // Google Maps key) — the tasteful placeholder stands in for the live map.
+  if (IS_DEMO || !Maps) {
     const fallback = (
       <GymMapFallback height={height} body={fallbackBody} {...(testID ? { testID } : {})} />
     );

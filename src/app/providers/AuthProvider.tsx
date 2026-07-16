@@ -20,15 +20,26 @@ interface AuthContextValue {
   status: SessionStatus;
   role: Role;
   signIn: (accessToken: string, refreshToken: string) => Promise<void>;
+  /**
+   * Demo one-tap sign-in: mints a fake session so the app swaps to the member
+   * experience and `Viewer` (from fixtures) loads. Only surfaced in demo builds;
+   * the real OTP flow is untouched and still used in production.
+   */
+  demoSignIn: () => Promise<void>;
   signOut: () => Promise<void>;
   /** Role switch after login (member <-> coach), same app, same design system. */
   setRole: (role: Role) => void;
 }
 
+/** Placeholder tokens for the demo session — never sent anywhere (no network). */
+const DEMO_ACCESS_TOKEN = "demo.access.token";
+const DEMO_REFRESH_TOKEN = "demo.refresh.token";
+
 const AuthContext = createContext<AuthContextValue>({
   status: "loading",
   role: "MEMBER",
   signIn: async () => {},
+  demoSignIn: async () => {},
   signOut: async () => {},
   setRole: () => {},
 });
@@ -53,6 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("signedIn");
   }, []);
 
+  const demoSignIn = useCallback(async () => {
+    await signIn(DEMO_ACCESS_TOKEN, DEMO_REFRESH_TOKEN);
+  }, [signIn]);
+
   const signOut = useCallback(async () => {
     await tokenStore.clear();
     setRole("MEMBER");
@@ -60,8 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, role, signIn, signOut, setRole }),
-    [status, role, signIn, signOut],
+    () => ({ status, role, signIn, demoSignIn, signOut, setRole }),
+    [status, role, signIn, demoSignIn, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

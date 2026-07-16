@@ -32,13 +32,24 @@ import { SosShield } from "../../system/components/SosShield";
 import { haptics } from "../../../lib/haptics";
 import { openCheckout } from "../../../lib/payments";
 import { toUiError } from "../../../lib/errors";
+import { IS_DEMO } from "../../../config/appMode";
+
+/**
+ * The scanner entry point. In a DEMO build there is no camera and no permission
+ * — a themed surface with a "Simulate scan" button runs the exact same offline
+ * check-in success path. In production it's the live vision-camera scanner. The
+ * split keeps each component's hooks unconditional (IS_DEMO is build-time fixed).
+ */
+export function ScannerScreen(props: MemberTabScreenProps<"CheckIn">) {
+  return IS_DEMO ? <DemoScannerSurface {...props} /> : <LiveScannerScreen {...props} />;
+}
 
 /**
  * The scanner — the app's center of gravity. Camera acquires in under a second
  * and a scan is processed OFFLINE: we never wait on the network to check you in.
  * The SOS shield sits top-right; the whole surface is a frame with one clear job.
  */
-export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
+function LiveScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   const device = useCameraDevice("back");
   const { hasPermission, requestPermission } = useCameraPermission();
   const [viewer] = useViewerQuery();
@@ -280,8 +291,94 @@ export function ScannerScreen({ navigation }: MemberTabScreenProps<"CheckIn">) {
   );
 }
 
+/**
+ * The demo scanner surface. No camera, no permission, no vision-camera mount —
+ * a "Simulate scan" button drives the identical offline success path (enqueue +
+ * navigate to the seal-stamp success screen).
+ */
+function DemoScannerSurface({ navigation }: MemberTabScreenProps<"CheckIn">) {
+  const [viewer] = useViewerQuery();
+  const { checkIn } = useCheckIn();
+  const [busy, setBusy] = useState(false);
+
+  const onSimulate = useCallback(() => {
+    if (busy) return;
+    setBusy(true);
+    void haptics.success();
+    const gymName = "Iron Republic";
+    // Same-tier scan (PREMIUM pass at a PREMIUM gym) → no top-up; enqueue writes
+    // locally and the outbox syncs against the SyncCheckIn fixture in the
+    // background. The success screen stamps the 450ms seal + share card.
+    checkIn({
+      gymCheckInCode: "gym_iron_republic",
+      gymId: "gym_iron_republic",
+      gymName,
+      acceptedTopUp: false,
+    });
+    const day = (viewer.data?.viewer?.activePass?.daysUsed ?? 0) + 1;
+    const streak = (viewer.data?.viewer?.streak.current ?? 0) + 1;
+    navigation.navigate("CheckInSuccess", {
+      gymName,
+      dayNumber: day,
+      streak,
+      rank: "Operator",
+      date: new Date().toISOString(),
+    });
+  }, [busy, checkIn, viewer.data, navigation]);
+
+  return (
+    <View style={styles.demoRoot} testID="scanner">
+      <SafeAreaView style={styles.overlay} pointerEvents="box-none">
+        <View style={styles.topRow}>
+          <IconButton
+            icon={X}
+            testID="scanner.close"
+            accessibilityLabel="Close scanner"
+            onPress={() => navigation.navigate("Home")}
+          />
+          <SosShield />
+        </View>
+
+        <View style={styles.frameWrap}>
+          <View style={styles.demoFrame}>
+            <QrCode size={64} color={colors.text.secondary} weight="thin" />
+          </View>
+          <Text testID="scanner.hint" preset="label" color="primary" style={styles.hint}>
+            DEMO CHECK IN
+          </Text>
+          <Text preset="body" color="secondary" align="center" style={styles.sub}>
+            No camera needed in the demo. Tap below to simulate scanning the door
+            code and check in.
+          </Text>
+        </View>
+
+        <View style={styles.demoFooter}>
+          <Button
+            testID="scanner.simulate"
+            label="Simulate scan"
+            onPress={onSimulate}
+            loading={busy}
+          />
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
+  demoRoot: { flex: 1, backgroundColor: colors.bg.base },
+  demoFrame: {
+    width: 240,
+    height: 240,
+    borderRadius: radius.sheet,
+    borderWidth: 2,
+    borderColor: colors.stroke.hairline,
+    backgroundColor: colors.surface.raised,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  demoFooter: { paddingBottom: spacing.lg },
   noCamera: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.bg.base,

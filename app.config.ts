@@ -47,6 +47,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     graphqlUrl: process.env.GRAPHQL_URL ?? "https://api.gymkartel.app/graphql",
     // Publishable Razorpay key id (safe on-device; the secret stays server-side).
     razorpayKeyId: process.env.RAZORPAY_KEY_ID ?? "",
+    // Mode mirror — `src/config/appMode.ts` reads the inlined EXPO_PUBLIC_* vars
+    // first and falls back to these at runtime. Defaults keep every existing
+    // profile (development/preview/production) in production behaviour; only the
+    // `demo` EAS profile sets EXPO_PUBLIC_APP_ENV=demo + EXPO_PUBLIC_DEMO=1.
+    appEnv: process.env.EXPO_PUBLIC_APP_ENV ?? "production",
+    demo: process.env.EXPO_PUBLIC_DEMO ?? "0",
   },
   plugins: [
     [
