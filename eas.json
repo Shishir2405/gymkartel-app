@@ -36,8 +36,7 @@
     "production": {
       "android": {
         "track": "internal",
-        "releaseStatus": "draft",
-        "rollout": 0.1
+        "releaseStatus": "draft"
       },
       "ios": {
         "ascAppId": "TODO_APP_STORE_CONNECT_APP_ID"

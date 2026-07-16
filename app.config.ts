@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "Gym Kartel",
   slug: "gymkartel-app",
+  owner: "lotussss",
   scheme: "gymkartel",
   version: "0.1.0",
   orientation: "portrait",
@@ -40,6 +41,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     razorpayKeyId: process.env.RAZORPAY_KEY_ID ?? "",
     appEnv: process.env.EXPO_PUBLIC_APP_ENV ?? "production",
     demo: process.env.EXPO_PUBLIC_DEMO ?? "0",
+    eas: {
+      projectId: "35e28321-97ae-4a22-9761-a8d9a66e9493",
+    },
   },
   plugins: [
     [
